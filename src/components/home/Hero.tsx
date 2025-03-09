@@ -67,18 +67,25 @@ const Hero = () => {
       
       // Calculate distances to all other nodes
       const distances = nodes.map((otherNode, j) => {
-        if (i === j) return Infinity;
+        if (i === j) return { index: j, distance: Infinity };
         const dx = node.x - otherNode.x;
         const dy = node.y - otherNode.y;
         return { index: j, distance: Math.sqrt(dx * dx + dy * dy) };
       });
       
       // Sort by distance and take the closest
-      distances.sort((a, b) => a.distance - b.distance);
+      distances.sort((a, b) => {
+        const distA = typeof a === 'number' ? Infinity : a.distance;
+        const distB = typeof b === 'number' ? Infinity : b.distance;
+        return distA - distB;
+      });
       
       // Store the indices of the closest nodes
       for (let c = 0; c < connectionCount && c < distances.length; c++) {
-        node.connections.push(distances[c].index);
+        const distanceObj = distances[c];
+        if (typeof distanceObj !== 'number') {
+          node.connections.push(distanceObj.index);
+        }
       }
     });
 
