@@ -14,21 +14,6 @@ const Hero = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      
-      // Clear and redraw when window is resized
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawMap();
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
     // Tanzania map outline - simplified for animation purposes
     const mapPoints = [
       [0.3, 0.3], [0.4, 0.2], [0.5, 0.25], [0.6, 0.2], 
@@ -93,30 +78,7 @@ const Hero = () => {
     let lastTimestamp = 0;
     const animationDuration = 2000; // ms
 
-    // Animation function
-    const animate = (timestamp: number) => {
-      if (!lastTimestamp) lastTimestamp = timestamp;
-      const elapsed = timestamp - lastTimestamp;
-      
-      // Update animation progress
-      if (animationProgress < 1) {
-        animationProgress += elapsed / animationDuration;
-        if (animationProgress > 1) animationProgress = 1;
-      }
-      
-      lastTimestamp = timestamp;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw map and nodes
-      drawMap();
-      
-      // Request next frame
-      requestAnimationFrame(animate);
-    };
-
-    // Draw Tanzania map outline
+    // Define drawMap function BEFORE it's used in handleResize
     const drawMap = () => {
       if (!ctx || !canvas) return;
       
@@ -174,6 +136,44 @@ const Hero = () => {
         ctx.fillStyle = `rgba(69, 127, 255, ${0.4 + 0.6 * animationProgress})`;
         ctx.fill();
       });
+    };
+
+    // Set canvas dimensions
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // Clear and redraw when window is resized
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMap();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // Animation function
+    const animate = (timestamp: number) => {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const elapsed = timestamp - lastTimestamp;
+      
+      // Update animation progress
+      if (animationProgress < 1) {
+        animationProgress += elapsed / animationDuration;
+        if (animationProgress > 1) animationProgress = 1;
+      }
+      
+      lastTimestamp = timestamp;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw map and nodes
+      drawMap();
+      
+      // Request next frame
+      requestAnimationFrame(animate);
     };
 
     // Start animation
