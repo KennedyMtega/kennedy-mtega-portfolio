@@ -17,7 +17,7 @@ const BlogPreview = () => {
   const featuredPost: BlogPost = {
     id: 'digital-economy',
     title: 'The Rise of the Digital Economy in Tanzania: Opportunities and Challenges',
-    excerpt: 'Exploring how digital innovation is transforming Tanzania's economic landscape and what it means for businesses and entrepreneurs.',
+    excerpt: "Exploring how digital innovation is transforming Tanzania's economic landscape and what it means for businesses and entrepreneurs.",
     date: 'June 15, 2023',
     image: '/placeholder.svg',
     category: 'Technology',
@@ -34,7 +34,7 @@ const BlogPreview = () => {
     },
     {
       id: 'mobile-payments',
-      title: 'Mobile Payments: The Backbone of Tanzania's Digital Transformation',
+      title: "Mobile Payments: The Backbone of Tanzania's Digital Transformation",
       excerpt: 'Examining the role of mobile payment systems in driving financial inclusion across Tanzania.',
       date: 'April 10, 2023',
       image: '/placeholder.svg',
