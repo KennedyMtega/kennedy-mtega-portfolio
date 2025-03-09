@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import {
   ChevronLeft,
@@ -51,6 +52,7 @@ const Pagination = ({
   }
 
   const pageNumbers = getPageNumbers()
+  const visiblePageCount = 5
 
   return (
     <div
@@ -95,7 +97,7 @@ const Pagination = ({
           page === 1 || page === pageCount ? null : (
             <Button
               key={page}
-              variant={currentPage === page ? "default" : "outline"}
+              variant={currentPage === page ? "primary" : "outline"}
               className="h-8 w-8 p-0"
               onClick={() => onPageChange(page)}
             >

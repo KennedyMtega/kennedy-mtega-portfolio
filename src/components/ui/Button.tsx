@@ -2,17 +2,49 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from "class-variance-authority";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
-  size?: 'sm' | 'md' | 'lg';
+// Define buttonVariants using cva for consistency with shadcn/ui
+export const buttonVariants = cva(
+  'inline-flex items-center justify-center font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-primary text-white hover:bg-primary/90',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        outline: 'border border-border bg-transparent hover:bg-secondary',
+        ghost: 'bg-transparent hover:bg-secondary',
+        link: 'bg-transparent underline-offset-4 hover:underline text-primary',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+      },
+      size: {
+        sm: 'text-xs px-3 py-1.5 rounded-full',
+        md: 'text-sm px-5 py-2.5 rounded-full',
+        lg: 'text-base px-7 py-3 rounded-full',
+        default: 'text-sm px-5 py-2.5 rounded-full',
+        icon: 'h-10 w-10 rounded-full',
+      },
+      fullWidth: {
+        true: 'w-full',
+      }
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+      fullWidth: false,
+    }
+  }
+);
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, 
+  VariantProps<typeof buttonVariants> {
   children: React.ReactNode;
   to?: string;
   external?: string;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
-  fullWidth?: boolean;
   loading?: boolean;
+  asChild?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -30,18 +62,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ...props
   }, ref) => {
     const baseStyles = cn(
-      'inline-flex items-center justify-center font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      fullWidth && 'w-full',
-      size === 'sm' && 'text-xs px-3 py-1.5 rounded-full',
-      size === 'md' && 'text-sm px-5 py-2.5 rounded-full',
-      size === 'lg' && 'text-base px-7 py-3 rounded-full',
-      variant === 'primary' && 'bg-primary text-white hover:bg-primary/90',
-      variant === 'secondary' && 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-      variant === 'outline' && 'border border-border bg-transparent hover:bg-secondary',
-      variant === 'ghost' && 'bg-transparent hover:bg-secondary',
-      variant === 'link' && 'bg-transparent underline-offset-4 hover:underline text-primary',
-      loading && 'cursor-wait',
-      className
+      buttonVariants({ variant, size, fullWidth, className })
     );
 
     const loadingSpinner = (
@@ -116,4 +137,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
+// Export both as default and named export for flexibility
+export { Button };
 export default Button;
