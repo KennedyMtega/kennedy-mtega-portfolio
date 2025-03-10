@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Settings as SettingsType } from '@/types/dashboard'; 
-import { Folder, Eye as EyeIcon, Settings as SettingsIcon, Mail, FileText } from 'lucide-react';
+import { Folder, Eye, Settings, Mail, FileText } from 'lucide-react';
 
 const DashboardHome = () => {
   const [stats, setStats] = useState({
@@ -50,7 +49,7 @@ const DashboardHome = () => {
           projects: projectsCount || 0,
           posts: postsCount || 0,
           messages: messagesCount || 0,
-          settings: settingsData
+          settings: settingsData as SettingsType
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -92,7 +91,7 @@ const DashboardHome = () => {
                     className="text-sm text-primary hover:underline flex items-center"
                   >
                     <span>Manage</span>
-                    <EyeIcon className="ml-1 h-4 w-4" />
+                    <Eye className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
               </div>
@@ -115,7 +114,7 @@ const DashboardHome = () => {
                     className="text-sm text-primary hover:underline flex items-center"
                   >
                     <span>Manage</span>
-                    <EyeIcon className="ml-1 h-4 w-4" />
+                    <Eye className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
               </div>
@@ -138,7 +137,7 @@ const DashboardHome = () => {
                     className="text-sm text-primary hover:underline flex items-center"
                   >
                     <span>View</span>
-                    <EyeIcon className="ml-1 h-4 w-4" />
+                    <Eye className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
               </div>
@@ -173,7 +172,7 @@ const DashboardHome = () => {
                   to="/dashboard/settings"
                   className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
                 >
-                  <SettingsIcon className="h-5 w-5 mr-2 text-primary" />
+                  <Settings className="h-5 w-5 mr-2 text-primary" />
                   <span>Site Settings</span>
                 </Link>
               </div>

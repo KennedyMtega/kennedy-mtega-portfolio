@@ -4,7 +4,7 @@
 // Settings types
 export interface Settings {
   id: string;
-  value: Record<string, any>;
+  value: any; // Change from Record<string, any> to any to accommodate the Json type from Supabase
   updated_at: string;
 }
 
