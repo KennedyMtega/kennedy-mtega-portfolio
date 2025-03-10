@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate, Outlet, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -19,15 +18,19 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const DashboardLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = React.useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const checkAuth = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
@@ -214,9 +217,9 @@ const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Content area */}
+        {/* Content area - now rendering children instead of Outlet */}
         <main className="flex-1 overflow-y-auto px-4 py-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>
