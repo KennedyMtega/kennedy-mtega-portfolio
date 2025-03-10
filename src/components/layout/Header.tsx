@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Button from '../ui/Button';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,19 +68,20 @@ const Header = () => {
               {item.name}
             </Link>
           ))}
-          <Link
+          <Button
             to="/dashboard"
-            className="px-4 py-2 rounded-full bg-secondary text-foreground font-medium transition-all duration-200 hover:bg-secondary/90 flex items-center"
+            variant="secondary"
+            icon={<User size={16} />}
+            iconPosition="left"
           >
-            <User size={16} className="mr-2" />
             Dashboard
-          </Link>
-          <Link
+          </Button>
+          <Button
             to="/contact"
-            className="px-5 py-2 rounded-full bg-primary text-white font-medium transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
+            variant="primary"
           >
             Let's Connect
-          </Link>
+          </Button>
         </nav>
 
         {/* Mobile Menu Button */}

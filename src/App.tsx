@@ -12,6 +12,11 @@ import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 
+// Import Dashboard pages
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import DashboardProjects from "./pages/dashboard/Projects";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,6 +30,11 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
+          
+          {/* Dashboard Routes */}
+          <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/projects" element={<DashboardLayout><DashboardProjects /></DashboardLayout>} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
