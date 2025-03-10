@@ -1,239 +1,208 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { supabase } from '@/integrations/supabase/client';
-import { Files, Eye, FolderKanban, MessageCircle, BarChart2, Settings as SettingsIcon } from 'lucide-react';
-import { Settings } from '@/types/dashboard';
+import { Settings as SettingsType } from '@/types/dashboard'; 
+import { Folder, Eye as EyeIcon, Settings as SettingsIcon, Mail, FileText } from 'lucide-react';
 
 const DashboardHome = () => {
-  const [counts, setCounts] = useState({
+  const [stats, setStats] = useState({
     projects: 0,
-    blogPosts: 0,
+    posts: 0,
     messages: 0,
-    pageViews: 0
+    settings: null as SettingsType | null
   });
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
-    fetchCounts();
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // Fetch projects count
+        const { count: projectsCount, error: projectsError } = await supabase
+          .from('projects')
+          .select('*', { count: 'exact', head: true });
+
+        // Fetch blog posts count  
+        const { count: postsCount, error: postsError } = await supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact', head: true });
+
+        // Fetch unread messages count
+        const { count: messagesCount, error: messagesError } = await supabase
+          .from('contact_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('read', false);
+
+        // Fetch settings
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('settings')
+          .select('*')
+          .single();
+
+        if (projectsError) throw projectsError;
+        if (postsError) throw postsError;
+        if (messagesError) throw messagesError;
+        if (settingsError) throw settingsError;
+
+        setStats({
+          projects: projectsCount || 0,
+          posts: postsCount || 0,
+          messages: messagesCount || 0,
+          settings: settingsData
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
-  
-  const fetchCounts = async () => {
-    try {
-      setLoading(true);
-      const [projectsResponse, postsResponse, messagesResponse, viewsResponse] = await Promise.all([
-        supabase.from('projects').select('id', { count: 'exact', head: true }),
-        supabase.from('blog_posts').select('id', { count: 'exact', head: true }),
-        supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
-        supabase.from('page_views').select('id', { count: 'exact', head: true })
-      ]);
-      
-      setCounts({
-        projects: projectsResponse.count || 0,
-        blogPosts: postsResponse.count || 0,
-        messages: messagesResponse.count || 0,
-        pageViews: viewsResponse.count || 0
-      });
-    } catch (error) {
-      console.error('Error fetching counts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <DashboardCard 
-            title="Projects" 
-            count={counts.projects} 
-            loading={loading}
-            icon={<FolderKanban size={24} />}
-            linkTo="/dashboard/projects"
-            color="bg-blue-500"
-          />
-          
-          <DashboardCard 
-            title="Blog Posts" 
-            count={counts.blogPosts} 
-            loading={loading}
-            icon={<Files size={24} />}
-            linkTo="/dashboard/blog"
-            color="bg-green-500"
-          />
-          
-          <DashboardCard 
-            title="Messages" 
-            count={counts.messages} 
-            loading={loading}
-            icon={<MessageCircle size={24} />}
-            linkTo="/dashboard/messages"
-            color="bg-yellow-500"
-          />
-          
-          <DashboardCard 
-            title="Page Views" 
-            count={counts.pageViews} 
-            loading={loading}
-            icon={<BarChart2 size={24} />}
-            linkTo="/dashboard/analytics"
-            color="bg-purple-500"
-          />
-        </div>
-        
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-border">
-              <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-              
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                  No recent activity to display
-                </p>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Dashboard Overview</h1>
+
+        {loading ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* Projects Card */}
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+                <div className="flex items-center mb-4">
+                  <span className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full mr-3">
+                    <Folder className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </span>
+                  <h2 className="text-lg font-semibold">Projects</h2>
+                </div>
+                <p className="text-3xl font-bold mb-2">{stats.projects}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Total projects
+                  </span>
+                  <Link
+                    to="/dashboard/projects"
+                    className="text-sm text-primary hover:underline flex items-center"
+                  >
+                    <span>Manage</span>
+                    <EyeIcon className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Blog Posts Card */}
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+                <div className="flex items-center mb-4">
+                  <span className="p-2 bg-green-100 dark:bg-green-900 rounded-full mr-3">
+                    <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </span>
+                  <h2 className="text-lg font-semibold">Blog Posts</h2>
+                </div>
+                <p className="text-3xl font-bold mb-2">{stats.posts}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Published articles
+                  </span>
+                  <Link
+                    to="/dashboard/blog"
+                    className="text-sm text-primary hover:underline flex items-center"
+                  >
+                    <span>Manage</span>
+                    <EyeIcon className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Messages Card */}
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+                <div className="flex items-center mb-4">
+                  <span className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full mr-3">
+                    <Mail className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                  </span>
+                  <h2 className="text-lg font-semibold">Unread Messages</h2>
+                </div>
+                <p className="text-3xl font-bold mb-2">{stats.messages}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Awaiting response
+                  </span>
+                  <Link
+                    to="/dashboard/messages"
+                    className="text-sm text-primary hover:underline flex items-center"
+                  >
+                    <span>View</span>
+                    <EyeIcon className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             </div>
-            
-            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-border">
+
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border mb-8">
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <QuickActionCard
-                  title="New Project"
-                  description="Add a new project to your portfolio"
-                  icon={<FolderKanban size={20} />}
-                  linkTo="/dashboard/projects?new=true"
-                  color="bg-blue-500"
-                />
-                
-                <QuickActionCard
-                  title="New Blog Post"
-                  description="Create a new blog article"
-                  icon={<Files size={20} />}
-                  linkTo="/dashboard/blog?new=true"
-                  color="bg-green-500"
-                />
-                
-                <QuickActionCard
-                  title="Settings"
-                  description="Update your site settings"
-                  icon={<SettingsIcon size={20} />}
-                  linkTo="/dashboard/settings"
-                  color="bg-gray-500"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link
+                  to="/dashboard/projects/new"
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
+                >
+                  <Folder className="h-5 w-5 mr-2 text-primary" />
+                  <span>Add New Project</span>
+                </Link>
+                <Link
+                  to="/dashboard/blog/new"
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
+                >
+                  <FileText className="h-5 w-5 mr-2 text-primary" />
+                  <span>Write New Post</span>
+                </Link>
+                <Link
+                  to="/dashboard/messages"
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
+                >
+                  <Mail className="h-5 w-5 mr-2 text-primary" />
+                  <span>Check Messages</span>
+                </Link>
+                <Link
+                  to="/dashboard/settings"
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
+                >
+                  <SettingsIcon className="h-5 w-5 mr-2 text-primary" />
+                  <span>Site Settings</span>
+                </Link>
               </div>
             </div>
-          </div>
-          
-          <div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-border">
-              <h2 className="text-xl font-semibold mb-4">Site Overview</h2>
-              
+
+            {/* Site Status */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+              <h2 className="text-xl font-semibold mb-4">Site Status</h2>
               <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Last updated
-                  </p>
-                  <p className="font-medium">
-                    {new Date().toLocaleDateString()}
-                  </p>
+                <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-600 dark:text-gray-300">Last Updated</span>
+                  <span className="font-medium">
+                    {stats.settings?.updated_at
+                      ? new Date(stats.settings.updated_at).toLocaleDateString()
+                      : 'Never'}
+                  </span>
                 </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Featured projects
-                  </p>
-                  <p className="font-medium">
-                    Loading...
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Published blog posts
-                  </p>
-                  <p className="font-medium">
-                    Loading...
-                  </p>
+                <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-600 dark:text-gray-300">Site Status</span>
+                  <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
+                    Online
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </DashboardLayout>
-  );
-};
-
-interface DashboardCardProps {
-  title: string;
-  count: number;
-  loading: boolean;
-  icon: React.ReactNode;
-  linkTo: string;
-  color: string;
-}
-
-const DashboardCard: React.FC<DashboardCardProps> = ({ 
-  title, 
-  count, 
-  loading, 
-  icon, 
-  linkTo, 
-  color 
-}) => {
-  return (
-    <Link to={linkTo} className="block">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors">
-        <div className="flex items-center">
-          <div className={`${color} text-white p-3 rounded-full mr-4`}>
-            {icon}
-          </div>
-          <div>
-            <h3 className="text-lg font-medium">{title}</h3>
-            <p className="text-2xl font-bold mt-1">
-              {loading ? 
-                <span className="inline-block w-12 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span> 
-                : count
-              }
-            </p>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-};
-
-interface QuickActionCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  linkTo: string;
-  color: string;
-}
-
-const QuickActionCard: React.FC<QuickActionCardProps> = ({ 
-  title, 
-  description, 
-  icon, 
-  linkTo, 
-  color 
-}) => {
-  return (
-    <Link to={linkTo} className="block">
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-border hover:border-primary transition-colors">
-        <div className="flex items-center mb-2">
-          <div className={`${color} text-white p-2 rounded-full mr-3`}>
-            {icon}
-          </div>
-          <h3 className="font-medium">{title}</h3>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {description}
-        </p>
-      </div>
-    </Link>
   );
 };
 

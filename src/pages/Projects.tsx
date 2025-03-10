@@ -70,7 +70,7 @@ const Projects = () => {
               <p className="text-gray-500 dark:text-gray-400">No projects found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {projects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
@@ -89,7 +89,7 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-border flex flex-col h-full">
+    <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-border flex flex-col h-full transform transition-transform hover:scale-[1.02] hover:shadow-md">
       {/* Project Image */}
       <div className="aspect-video bg-gray-100 dark:bg-gray-700 relative">
         {project.preview_image_url ? (
@@ -97,6 +97,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             src={project.preview_image_url} 
             alt={project.title}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
@@ -112,10 +113,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
       
       {/* Project Content */}
-      <div className="p-6 flex-grow">
+      <div className="p-4 sm:p-6 flex-grow">
         <h3 className="font-bold text-xl mb-2">{project.title}</h3>
         
-        <p className="text-foreground/70 mb-4">
+        <p className="text-foreground/70 text-sm sm:text-base mb-4">
           {project.short_description}
         </p>
         
@@ -136,7 +137,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
       
       {/* Project Footer */}
-      <div className="p-6 pt-0 flex gap-2 mt-auto">
+      <div className="p-4 sm:p-6 pt-0 flex flex-wrap gap-2 mt-auto">
         <Button 
           to={`/projects/${project.slug}`}
           variant="primary"
