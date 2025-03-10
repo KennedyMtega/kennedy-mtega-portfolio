@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Header = () => {
@@ -54,7 +54,7 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -68,8 +68,15 @@ const Header = () => {
             </Link>
           ))}
           <Link
+            to="/dashboard"
+            className="px-4 py-2 rounded-full bg-secondary text-foreground font-medium transition-all duration-200 hover:bg-secondary/90 flex items-center"
+          >
+            <User size={16} className="mr-2" />
+            Dashboard
+          </Link>
+          <Link
             to="/contact"
-            className="ml-4 px-5 py-2 rounded-full bg-primary text-white font-medium transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
+            className="px-5 py-2 rounded-full bg-primary text-white font-medium transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
           >
             Let's Connect
           </Link>
@@ -105,6 +112,13 @@ const Header = () => {
               {item.name}
             </Link>
           ))}
+          <Link
+            to="/dashboard"
+            className="flex items-center text-2xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
+          >
+            <User size={20} className="mr-2" />
+            Dashboard
+          </Link>
           <Link
             to="/contact"
             className="mt-8 py-3 w-full text-center rounded-full bg-primary text-white font-medium transition-all duration-200"

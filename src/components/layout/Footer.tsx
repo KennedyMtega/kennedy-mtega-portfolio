@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Linkedin, Instagram, Mail, ArrowUpRight } from 'lucide-react';
+import { Twitter, Linkedin, Instagram, Mail, ArrowUpRight, User } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -83,28 +83,29 @@ const Footer = () => {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link to="/dashboard" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+                  <User size={14} className="mr-1" />
+                  Dashboard
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Projects */}
+          {/* Projects - This will now display real projects */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground/70">
               Projects
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link to="/projects/giftopia" className="text-muted-foreground hover:text-primary transition-colors">
-                  Giftopia Moments
+                <Link to="/projects" className="text-muted-foreground hover:text-primary transition-colors">
+                  All Projects
                 </Link>
               </li>
               <li>
-                <Link to="/projects/swahili-job-hub" className="text-muted-foreground hover:text-primary transition-colors">
-                  Swahili Job Hub
-                </Link>
-              </li>
-              <li>
-                <Link to="/projects/chat-marketer" className="text-muted-foreground hover:text-primary transition-colors">
-                  ChatMarketer Tanzania
+                <Link to="/dashboard/projects" className="text-muted-foreground hover:text-primary transition-colors">
+                  Manage Projects
                 </Link>
               </li>
             </ul>
