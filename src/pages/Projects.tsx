@@ -155,7 +155,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             size="sm"
             icon={<Github size={14} />}
             aria-label="View on GitHub"
-          />
+          >
+            GitHub
+          </Button>
         )}
         
         {project.project_url && (
@@ -165,7 +167,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             size="sm"
             icon={<ExternalLink size={14} />}
             aria-label="View live project"
-          />
+          >
+            Live
+          </Button>
         )}
       </div>
     </div>

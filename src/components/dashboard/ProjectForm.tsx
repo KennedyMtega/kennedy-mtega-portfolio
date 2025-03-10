@@ -133,10 +133,24 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         if (uploadedPreviewUrl) previewImageUrl = uploadedPreviewUrl;
       }
       
+      // Ensure required fields are present
+      if (!formData.title || !formData.slug || !formData.short_description || !formData.full_description) {
+        throw new Error("Please fill in all required fields");
+      }
+      
+      // Prepare the project data ensuring all required fields
       const projectData = {
-        ...formData,
+        title: formData.title,
+        slug: formData.slug,
+        short_description: formData.short_description,
+        full_description: formData.full_description,
+        technologies: formData.technologies || [],
+        project_url: formData.project_url,
+        github_url: formData.github_url,
         image_url: imageUrl,
         preview_image_url: previewImageUrl,
+        featured: formData.featured || false,
+        order_index: formData.order_index || 0
       };
       
       let result;
