@@ -1,165 +1,116 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Project } from '@/types/dashboard';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { Save, Plus, TrashIcon, Link, Github, Image } from 'lucide-react';
-import Button from '../ui/Button';
+import { supabase } from '@/integrations/supabase/client';
+import Button from '@/components/ui/Button';
+import { PlusCircle, Save, Trash, Upload } from 'lucide-react';
 
 interface ProjectFormProps {
-  projectId?: string;
+  project?: Project;
+  onSubmitSuccess?: (project: Project) => void;
+  onCancel?: () => void;
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ projectId }) => {
-  const [loading, setLoading] = useState(false);
-  const [formLoading, setFormLoading] = useState(projectId ? true : false);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [previewImageUploading, setPreviewImageUploading] = useState(false);
-  const navigate = useNavigate();
+const ProjectForm: React.FC<ProjectFormProps> = ({ 
+  project, 
+  onSubmitSuccess,
+  onCancel
+}) => {
+  const isEditing = !!project;
   const { toast } = useToast();
   
-  const [formState, setFormState] = useState({
+  const [formData, setFormData] = useState<Partial<Project>>({
     title: '',
     slug: '',
     short_description: '',
     full_description: '',
-    technologies: [] as string[],
+    technologies: [],
     project_url: '',
     github_url: '',
     image_url: '',
     preview_image_url: '',
-    featured: false
+    featured: false,
+    order_index: 0
   });
   
-  const [technology, setTechnology] = useState('');
+  const [newTechnology, setNewTechnology] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
 
   useEffect(() => {
-    const fetchProject = async () => {
-      if (!projectId) {
-        setFormLoading(false);
-        return;
-      }
-      
-      try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('id', projectId)
-          .single();
-        
-        if (error) throw error;
-        
-        if (data) {
-          setFormState({
-            title: data.title || '',
-            slug: data.slug || '',
-            short_description: data.short_description || '',
-            full_description: data.full_description || '',
-            technologies: data.technologies || [],
-            project_url: data.project_url || '',
-            github_url: data.github_url || '',
-            image_url: data.image_url || '',
-            preview_image_url: data.preview_image_url || '',
-            featured: data.featured || false
-          });
-        }
-      } catch (error: any) {
-        toast({
-          title: "Error loading project",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setFormLoading(false);
-      }
-    };
-    
-    fetchProject();
-  }, [projectId, toast]);
+    if (project) {
+      setFormData({
+        ...project
+      });
+    }
+  }, [project]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    setFormState(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    
-    setFormState(prev => ({ ...prev, slug: value }));
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
-  const generateSlugFromTitle = () => {
-    const slug = formState.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    
-    setFormState(prev => ({ ...prev, slug }));
-  };
-
-  const handleAddTechnology = () => {
-    if (technology && !formState.technologies.includes(technology)) {
-      setFormState(prev => ({
+  const handleTechnologyAdd = () => {
+    if (newTechnology.trim() && !formData.technologies?.includes(newTechnology.trim())) {
+      setFormData(prev => ({
         ...prev,
-        technologies: [...prev.technologies, technology]
+        technologies: [...(prev.technologies || []), newTechnology.trim()]
       }));
-      setTechnology('');
+      setNewTechnology('');
     }
   };
 
-  const handleRemoveTechnology = (tech: string) => {
-    setFormState(prev => ({
+  const handleTechnologyRemove = (tech: string) => {
+    setFormData(prev => ({
       ...prev,
-      technologies: prev.technologies.filter(t => t !== tech)
+      technologies: prev.technologies?.filter(t => t !== tech) || []
     }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'main' | 'preview') => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    
+  const generateSlug = () => {
+    if (formData.title) {
+      const slug = formData.title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
+      setFormData(prev => ({ ...prev, slug }));
+    }
+  };
+
+  const handleImageUpload = async (file: File, isPreview: boolean): Promise<string | null> => {
     try {
-      if (type === 'main') setImageUploading(true);
-      else setPreviewImageUploading(true);
+      if (!file) return null;
       
-      const { error: uploadError, data } = await supabase.storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `projects/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
         .from('portfolio')
-        .upload(`projects/${filePath}`, file);
-      
+        .upload(filePath, file);
+        
       if (uploadError) throw uploadError;
       
-      const { data: { publicUrl } } = supabase.storage
+      const { data } = supabase.storage
         .from('portfolio')
-        .getPublicUrl(`projects/${filePath}`);
-      
-      setFormState(prev => ({
-        ...prev,
-        [type === 'main' ? 'image_url' : 'preview_image_url']: publicUrl
-      }));
-      
-      toast({
-        title: "Image uploaded successfully",
-        description: type === 'main' ? "Main image has been uploaded." : "Preview image has been uploaded.",
+        .getPublicUrl(filePath);
+        
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ 
+        title: "Upload failed", 
+        description: "There was an error uploading your image.",
+        variant: "destructive" 
       });
-    } catch (error: any) {
-      toast({
-        title: "Error uploading image",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      if (type === 'main') setImageUploading(false);
-      else setPreviewImageUploading(false);
+      return null;
     }
   };
 
@@ -168,336 +119,397 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ projectId }) => {
     setLoading(true);
     
     try {
-      // Validate required fields
-      if (!formState.title || !formState.slug || !formState.short_description || !formState.full_description) {
-        throw new Error('Please fill in all required fields.');
+      let imageUrl = formData.image_url;
+      let previewImageUrl = formData.preview_image_url;
+      
+      // Upload images if selected
+      if (imageFile) {
+        const uploadedImageUrl = await handleImageUpload(imageFile, false);
+        if (uploadedImageUrl) imageUrl = uploadedImageUrl;
       }
       
-      // Check if slug exists (for new projects)
-      if (!projectId) {
-        const { data: existingSlug } = await supabase
-          .from('projects')
-          .select('slug')
-          .eq('slug', formState.slug)
-          .single();
-        
-        if (existingSlug) {
-          throw new Error('This slug is already in use. Please choose a different one.');
-        }
+      if (previewFile) {
+        const uploadedPreviewUrl = await handleImageUpload(previewFile, true);
+        if (uploadedPreviewUrl) previewImageUrl = uploadedPreviewUrl;
       }
+      
+      const projectData = {
+        ...formData,
+        image_url: imageUrl,
+        preview_image_url: previewImageUrl,
+      };
       
       let result;
       
-      if (projectId) {
+      if (isEditing && project?.id) {
         // Update existing project
-        result = await supabase
+        const { data, error } = await supabase
           .from('projects')
           .update({
-            title: formState.title,
-            slug: formState.slug,
-            short_description: formState.short_description,
-            full_description: formState.full_description,
-            technologies: formState.technologies,
-            project_url: formState.project_url,
-            github_url: formState.github_url,
-            image_url: formState.image_url,
-            preview_image_url: formState.preview_image_url,
-            featured: formState.featured,
+            ...projectData,
             updated_at: new Date().toISOString()
           })
-          .eq('id', projectId);
+          .eq('id', project.id)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        result = data;
+        
+        toast({
+          title: "Project updated",
+          description: "Your project has been updated successfully."
+        });
       } else {
         // Create new project
-        result = await supabase
+        const { data, error } = await supabase
           .from('projects')
           .insert({
-            title: formState.title,
-            slug: formState.slug,
-            short_description: formState.short_description,
-            full_description: formState.full_description,
-            technologies: formState.technologies,
-            project_url: formState.project_url,
-            github_url: formState.github_url,
-            image_url: formState.image_url,
-            preview_image_url: formState.preview_image_url,
-            featured: formState.featured
-          });
+            ...projectData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        result = data;
+        
+        toast({
+          title: "Project created",
+          description: "Your new project has been created successfully."
+        });
       }
       
-      if (result.error) throw result.error;
+      if (onSubmitSuccess && result) {
+        onSubmitSuccess(result as Project);
+      }
       
-      toast({
-        title: projectId ? "Project updated" : "Project created",
-        description: projectId ? "Your project has been updated successfully." : "Your project has been created successfully.",
-      });
-      
-      navigate('/dashboard/projects');
+      // Reset form if creating new project
+      if (!isEditing) {
+        setFormData({
+          title: '',
+          slug: '',
+          short_description: '',
+          full_description: '',
+          technologies: [],
+          project_url: '',
+          github_url: '',
+          image_url: '',
+          preview_image_url: '',
+          featured: false,
+          order_index: 0
+        });
+        setImageFile(null);
+        setPreviewFile(null);
+      }
     } catch (error: any) {
+      console.error('Error saving project:', error);
       toast({
         title: "Error saving project",
-        description: error.message,
-        variant: "destructive",
+        description: error.message || "There was an error saving your project.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  if (formLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Title *
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Project Title*
             </label>
             <input
               id="title"
               name="title"
               type="text"
               required
-              value={formState.title}
+              value={formData.title || ''}
               onChange={handleChange}
-              onBlur={() => !formState.slug && generateSlugFromTitle()}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-              placeholder="Project Title"
+              onBlur={generateSlug}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
+          
           <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Slug * (URL-friendly identifier)
+            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              URL Slug*
             </label>
-            <input
-              id="slug"
-              name="slug"
-              type="text"
-              required
-              value={formState.slug}
-              onChange={handleSlugChange}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-              placeholder="project-slug"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="short_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Short Description * (shown in preview cards)
-          </label>
-          <textarea
-            id="short_description"
-            name="short_description"
-            rows={2}
-            required
-            value={formState.short_description}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-            placeholder="Brief description of your project (1-2 sentences)"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="full_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Full Description * (displayed on project details page)
-          </label>
-          <textarea
-            id="full_description"
-            name="full_description"
-            rows={8}
-            required
-            value={formState.full_description}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-            placeholder="Detailed description of your project, challenges, solutions, etc."
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Technologies Used
-          </label>
-          <div className="flex items-center mb-2">
-            <input
-              type="text"
-              value={technology}
-              onChange={(e) => setTechnology(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-              placeholder="Add a technology (e.g., React, Node.js)"
-            />
-            <button
-              type="button"
-              onClick={handleAddTechnology}
-              className="p-2 bg-primary text-white rounded-r-md hover:bg-primary/90"
-            >
-              <Plus size={20} />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formState.technologies.map(tech => (
-              <div 
-                key={tech} 
-                className="flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full"
+            <div className="flex mt-1">
+              <input
+                id="slug"
+                name="slug"
+                type="text"
+                required
+                value={formData.slug || ''}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <Button 
+                type="button"
+                variant="secondary" 
+                size="sm"
+                className="ml-2"
+                onClick={generateSlug}
               >
-                <span className="text-sm">{tech}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTechnology(tech)}
-                  className="ml-2 text-gray-500 hover:text-red-500"
-                >
-                  <TrashIcon size={14} />
-                </button>
-              </div>
-            ))}
+                Generate
+              </Button>
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="short_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Short Description*
+            </label>
+            <textarea
+              id="short_description"
+              name="short_description"
+              required
+              rows={3}
+              value={formData.short_description || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="full_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Full Description*
+            </label>
+            <textarea
+              id="full_description"
+              name="full_description"
+              required
+              rows={6}
+              value={formData.full_description || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <div className="space-y-4">
           <div>
-            <label htmlFor="project_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Technologies*
+            </label>
+            <div className="flex mt-1">
+              <input
+                type="text"
+                value={newTechnology}
+                onChange={(e) => setNewTechnology(e.target.value)}
+                placeholder="Add technology"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <Button 
+                type="button"
+                variant="secondary" 
+                size="sm"
+                className="ml-2"
+                onClick={handleTechnologyAdd}
+                icon={<PlusCircle size={16} />}
+              >
+                Add
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.technologies?.map((tech) => (
+                <span key={tech} className="bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-full text-sm flex items-center">
+                  {tech}
+                  <button 
+                    type="button"
+                    onClick={() => handleTechnologyRemove(tech)} 
+                    className="ml-1.5 text-secondary-foreground hover:text-gray-500 dark:hover:text-gray-400"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="project_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Project URL
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Link size={18} className="text-gray-400" />
-              </div>
-              <input
-                id="project_url"
-                name="project_url"
-                type="url"
-                value={formState.project_url}
-                onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                placeholder="https://example.com"
-              />
-            </div>
+            <input
+              id="project_url"
+              name="project_url"
+              type="url"
+              value={formData.project_url || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
           </div>
+          
           <div>
-            <label htmlFor="github_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="github_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               GitHub URL
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Github size={18} className="text-gray-400" />
-              </div>
-              <input
-                id="github_url"
-                name="github_url"
-                type="url"
-                value={formState.github_url}
-                onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                placeholder="https://github.com/username/project"
-              />
-            </div>
+            <input
+              id="github_url"
+              name="github_url"
+              type="url"
+              value={formData.github_url || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Main Project Image
+            <label htmlFor="order_index" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Display Order
             </label>
-            <div className="mt-1 flex items-center space-x-4">
-              <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Image size={24} className="text-gray-400 mb-1" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Upload</p>
-                </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={(e) => handleImageUpload(e, 'main')}
-                  disabled={imageUploading}
-                />
-              </label>
-              {imageUploading && (
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-              )}
-              {formState.image_url && !imageUploading && (
-                <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-                  <img 
-                    src={formState.image_url} 
-                    alt="Project preview" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
+            <input
+              id="order_index"
+              name="order_index"
+              type="number"
+              min="0"
+              value={formData.order_index || 0}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Preview Image (for cards)
-            </label>
-            <div className="mt-1 flex items-center space-x-4">
-              <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Image size={24} className="text-gray-400 mb-1" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Upload</p>
-                </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={(e) => handleImageUpload(e, 'preview')}
-                  disabled={previewImageUploading}
-                />
-              </label>
-              {previewImageUploading && (
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-              )}
-              {formState.preview_image_url && !previewImageUploading && (
-                <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-                  <img 
-                    src={formState.preview_image_url} 
-                    alt="Project preview" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div>
+          
           <div className="flex items-center">
             <input
               id="featured"
               name="featured"
               type="checkbox"
-              checked={formState.featured}
-              onChange={handleChange}
-              className="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300 rounded"
+              checked={formData.featured || false}
+              onChange={handleCheckboxChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
             />
-            <label htmlFor="featured" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Feature this project on the homepage
+            <label htmlFor="featured" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              Featured Project
             </label>
           </div>
         </div>
       </div>
-
+      
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Main Image
+          </label>
+          <div className="mt-1 flex items-center">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="project-image"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  setImageFile(e.target.files[0]);
+                }
+              }}
+            />
+            <label
+              htmlFor="project-image"
+              className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <div className="flex items-center">
+                <Upload className="mr-2 h-4 w-4" />
+                {imageFile ? 'Change Image' : 'Upload Image'}
+              </div>
+            </label>
+            {(imageFile || formData.image_url) && (
+              <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                {imageFile ? imageFile.name : 'Current image'}
+              </span>
+            )}
+          </div>
+          {formData.image_url && !imageFile && (
+            <div className="mt-2">
+              <img 
+                src={formData.image_url} 
+                alt="Project" 
+                className="h-32 w-32 object-cover rounded-md border border-gray-300 dark:border-gray-600" 
+              />
+            </div>
+          )}
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Preview Image (for card)
+          </label>
+          <div className="mt-1 flex items-center">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="preview-image"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  setPreviewFile(e.target.files[0]);
+                }
+              }}
+            />
+            <label
+              htmlFor="preview-image"
+              className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <div className="flex items-center">
+                <Upload className="mr-2 h-4 w-4" />
+                {previewFile ? 'Change Preview' : 'Upload Preview'}
+              </div>
+            </label>
+            {(previewFile || formData.preview_image_url) && (
+              <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                {previewFile ? previewFile.name : 'Current preview'}
+              </span>
+            )}
+          </div>
+          {formData.preview_image_url && !previewFile && (
+            <div className="mt-2">
+              <img 
+                src={formData.preview_image_url} 
+                alt="Preview" 
+                className="h-32 w-32 object-cover rounded-md border border-gray-300 dark:border-gray-600" 
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      
       <div className="flex justify-end space-x-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/dashboard/projects')}
-        >
-          Cancel
-        </Button>
-        <Button
+        {onCancel && (
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+        )}
+        
+        {isEditing && (
+          <Button 
+            type="button"
+            variant="destructive"
+            icon={<Trash size={16} />}
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                // Implement delete functionality
+              }
+            }}
+          >
+            Delete
+          </Button>
+        )}
+        
+        <Button 
           type="submit"
-          disabled={loading}
-          icon={loading ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div> : <Save size={16} />}
+          variant="primary"
+          loading={loading}
+          icon={<Save size={16} />}
         >
-          {projectId ? 'Update Project' : 'Create Project'}
+          {isEditing ? 'Update Project' : 'Create Project'}
         </Button>
       </div>
     </form>
