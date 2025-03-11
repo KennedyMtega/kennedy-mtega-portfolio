@@ -24,6 +24,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onToggleSidebar
     if (path === '/dashboard/analytics') return 'Analytics';
     if (path === '/dashboard/donations') return 'Donations';
     if (path === '/dashboard/settings') return 'Settings';
+    
+    // For dynamic routes
+    if (path.startsWith('/dashboard/projects/edit/')) return 'Edit Project';
+    if (path === '/dashboard/projects/new') return 'New Project';
+    if (path.startsWith('/dashboard/blog/edit/')) return 'Edit Blog Post';
+    if (path === '/dashboard/blog/new') return 'New Blog Post';
+    
     return 'Dashboard';
   };
 
@@ -56,7 +63,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onToggleSidebar
         >
           <Bell size={20} />
         </button>
-        <div className="text-sm text-gray-600 dark:text-gray-300 mr-4">
+        <div className="text-sm text-gray-600 dark:text-gray-300 mr-4 hidden md:block">
           {user?.email || 'mtegakennedy@gmail.com'}
         </div>
         <button 

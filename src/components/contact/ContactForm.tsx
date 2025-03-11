@@ -25,6 +25,12 @@ const ContactForm = () => {
     setLoading(true);
     
     try {
+      // Validate form data
+      if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+        throw new Error("All fields are required");
+      }
+      
+      // Insert message into Supabase
       const { error } = await supabase
         .from('contact_messages')
         .insert({
@@ -41,11 +47,11 @@ const ContactForm = () => {
       if (error) throw error;
       
       toast({
-        title: "Message sent",
+        title: "Message sent successfully",
         description: "Thank you for your message. I'll get back to you soon."
       });
       
-      // Reset form
+      // Reset form after successful submission
       setFormData({
         name: '',
         email: '',

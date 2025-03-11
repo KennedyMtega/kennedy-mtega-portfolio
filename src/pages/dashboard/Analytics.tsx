@@ -1,171 +1,203 @@
 
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { PageView } from '@/types/dashboard';
 
 const DashboardAnalytics = () => {
-  const [visitData, setVisitData] = useState([]);
-  const [pageViewData, setPageViewData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pageViews, setPageViews] = useState<PageView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deviceData, setDeviceData] = useState<any[]>([]);
+  const [pageData, setPageData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchAnalyticsData();
+    fetchPageViews();
   }, []);
 
-  const fetchAnalyticsData = async () => {
+  const fetchPageViews = async () => {
     try {
-      setIsLoading(true);
-      
-      // Fetch page views from Supabase
-      const { data: pageViews, error: pageViewsError } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('page_views')
-        .select('*');
-        
-      if (pageViewsError) throw pageViewsError;
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
       
-      // Process page views by month for the visit data
-      const monthlyData = processMonthlyVisits(pageViews || []);
-      setVisitData(monthlyData);
+      setPageViews(data || []);
       
-      // Process page views by page path
-      const pathData = processPagePaths(pageViews || []);
-      setPageViewData(pathData);
-      
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      // Process data for charts
+      processDeviceData(data || []);
+      processPageData(data || []);
+    } catch (err: any) {
+      console.error('Error fetching page views:', err);
+      setError(err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
-  // Process page views into monthly visit data
-  const processMonthlyVisits = (pageViews) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const monthCounts = Array(12).fill(0);
+
+  const processDeviceData = (data: PageView[]) => {
+    const deviceCounts: Record<string, number> = {};
     
-    pageViews.forEach(view => {
-      const date = new Date(view.created_at);
-      const month = date.getMonth();
-      monthCounts[month]++;
+    data.forEach(view => {
+      const device = view.device_type || 'unknown';
+      deviceCounts[device] = (deviceCounts[device] || 0) + 1;
     });
     
-    return months.map((name, index) => ({
-      name,
-      visits: monthCounts[index]
+    const chartData = Object.keys(deviceCounts).map(device => ({
+      name: device.charAt(0).toUpperCase() + device.slice(1),
+      value: deviceCounts[device]
     }));
-  };
-  
-  // Process page views by page path
-  const processPagePaths = (pageViews) => {
-    const pathCounts = {};
     
-    pageViews.forEach(view => {
-      const path = view.page_path;
-      // Extract the main page (e.g., '/blog/post-1' becomes 'blog')
-      const mainPath = path.split('/')[1] || 'home';
-      
-      if (!pathCounts[mainPath]) {
-        pathCounts[mainPath] = 0;
-      }
-      pathCounts[mainPath]++;
+    setDeviceData(chartData);
+  };
+
+  const processPageData = (data: PageView[]) => {
+    const pageCounts: Record<string, number> = {};
+    
+    data.forEach(view => {
+      const page = view.page_path;
+      pageCounts[page] = (pageCounts[page] || 0) + 1;
     });
     
-    // Convert to array format for charts
-    return Object.keys(pathCounts).map(name => ({
-      name: name === '' ? 'Home' : name.charAt(0).toUpperCase() + name.slice(1),
-      views: pathCounts[name]
+    const chartData = Object.keys(pageCounts).map(page => ({
+      name: page === '/' ? 'Home' : page.replace('/', '').charAt(0).toUpperCase() + page.replace('/', '').slice(1),
+      views: pageCounts[page]
     }));
+    
+    // Sort by views (descending)
+    chartData.sort((a, b) => b.views - a.views);
+    
+    // Take top 10
+    setPageData(chartData.slice(0, 10));
   };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   return (
     <DashboardLayout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
-
-        {isLoading ? (
+        
+        {loading ? (
           <div className="flex items-center justify-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
+        ) : error ? (
+          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400">
+            <p>{error}</p>
+            <button 
+              onClick={fetchPageViews} 
+              className="mt-2 px-4 py-2 bg-red-100 dark:bg-red-900 rounded-md hover:bg-red-200 dark:hover:bg-red-800"
+            >
+              Try Again
+            </button>
+          </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
-                <h2 className="text-lg font-semibold mb-4">Website Visits</h2>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={visitData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="visits" 
-                        stroke="#8884d8" 
-                        activeDot={{ r: 8 }} 
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
-                <h2 className="text-lg font-semibold mb-4">Page Views</h2>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={pageViewData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="views" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
+          <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
-              <h2 className="text-lg font-semibold mb-4">Traffic Summary</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Visits</p>
-                  <p className="text-2xl font-bold">
-                    {visitData.reduce((sum, month) => sum + month.visits, 0)}
-                  </p>
-                  <p className="text-xs text-green-500">↑ 12% from last month</p>
+              <h2 className="text-lg font-semibold mb-4">Overview</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Page Views</p>
+                  <p className="text-3xl font-bold">{pageViews.length}</p>
                 </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Time on Site</p>
-                  <p className="text-2xl font-bold">3:24</p>
-                  <p className="text-xs text-green-500">↑ 8% from last month</p>
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Unique Pages</p>
+                  <p className="text-3xl font-bold">{pageData.length}</p>
                 </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Bounce Rate</p>
-                  <p className="text-2xl font-bold">42%</p>
-                  <p className="text-xs text-red-500">↑ 3% from last month</p>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">New Visitors</p>
-                  <p className="text-2xl font-bold">65%</p>
-                  <p className="text-xs text-green-500">↑ 5% from last month</p>
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Device Types</p>
+                  <p className="text-3xl font-bold">{deviceData.length}</p>
                 </div>
               </div>
             </div>
-          </>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+                <h2 className="text-lg font-semibold mb-4">Most Visited Pages</h2>
+                {pageData.length > 0 ? (
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={pageData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="views" fill="#8884d8" name="Page Views" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-10">No page data available</p>
+                )}
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+                <h2 className="text-lg font-semibold mb-4">Device Types</h2>
+                {deviceData.length > 0 ? (
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={deviceData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {deviceData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-10">No device data available</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+              <h2 className="text-lg font-semibold mb-4">Recent Page Views</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Page</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Device</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Referrer</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {pageViews.slice(0, 10).map((view) => (
+                      <tr key={view.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{view.page_path}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{view.device_type || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{view.referrer || 'Direct'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(view.created_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </DashboardLayout>

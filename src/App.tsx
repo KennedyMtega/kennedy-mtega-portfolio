@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 // Add new pages for navigation links
 import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 
@@ -17,6 +18,7 @@ import Auth from "./pages/Auth";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import DashboardProjects from "./pages/dashboard/Projects";
 import DashboardBlog from "./pages/dashboard/Blog";
+import DashboardBlogEdit from "./pages/dashboard/BlogEdit";
 import DashboardMessages from "./pages/dashboard/Messages";
 import DashboardAnalytics from "./pages/dashboard/Analytics";
 import DashboardDonations from "./pages/dashboard/Donations";
@@ -35,6 +37,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
           
@@ -42,6 +45,8 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardHome />} />
           <Route path="/dashboard/projects" element={<DashboardProjects />} />
           <Route path="/dashboard/blog" element={<DashboardBlog />} />
+          <Route path="/dashboard/blog/new" element={<DashboardBlogEdit />} />
+          <Route path="/dashboard/blog/edit/:id" element={<DashboardBlogEdit />} />
           <Route path="/dashboard/messages" element={<DashboardMessages />} />
           <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
           <Route path="/dashboard/donations" element={<DashboardDonations />} />

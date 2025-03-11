@@ -36,7 +36,8 @@ const DashboardSettings = () => {
         const { data, error } = await supabase
           .from('settings')
           .select('*')
-          .single();
+          .eq('id', '1')
+          .maybeSingle();
 
         if (error) throw error;
 
