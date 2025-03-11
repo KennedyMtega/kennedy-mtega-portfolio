@@ -69,21 +69,21 @@ const Header = () => {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'py-3 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md shadow-sm'
-          : 'py-5 bg-transparent'
+          ? 'py-2 sm:py-3 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md shadow-sm'
+          : 'py-3 sm:py-5 bg-transparent'
       )}
     >
-      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+      <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link 
           to="/" 
-          className="text-xl md:text-2xl font-display font-semibold tracking-tight"
+          className="text-xl sm:text-2xl font-display font-semibold tracking-tight"
         >
           Kennedy Mtega
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-3 lg:space-x-6">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -101,12 +101,14 @@ const Header = () => {
             variant="secondary"
             icon={<User size={16} />}
             iconPosition="left"
+            size="sm"
           >
             {isLoggedIn ? 'Dashboard' : 'Login'}
           </Button>
           <Button
             to="/contact"
             variant="primary"
+            size="sm"
           >
             Let's Connect
           </Button>
@@ -125,17 +127,17 @@ const Header = () => {
       {/* Mobile Menu */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-white dark:bg-gray-900 transition-all duration-300 flex flex-col pt-24 px-6',
+          'fixed inset-0 z-40 bg-white dark:bg-gray-900 transition-all duration-300 flex flex-col pt-20 px-6',
           isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
       >
-        <nav className="flex flex-col space-y-6">
+        <nav className="flex flex-col space-y-5">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                'text-2xl font-medium transition-all duration-200',
+                'text-xl font-medium transition-all duration-200',
                 location.pathname === item.path ? 'text-primary' : 'text-foreground/80'
               )}
             >
@@ -144,14 +146,14 @@ const Header = () => {
           ))}
           <Link
             to={isLoggedIn ? '/dashboard' : '/auth'}
-            className="flex items-center text-2xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
+            className="flex items-center text-xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
           >
             <User size={20} className="mr-2" />
             {isLoggedIn ? 'Dashboard' : 'Login'}
           </Link>
           <Link
             to="/contact"
-            className="mt-8 py-3 w-full text-center rounded-full bg-primary text-white font-medium transition-all duration-200"
+            className="mt-6 py-3 w-full text-center rounded-full bg-primary text-white font-medium transition-all duration-200"
           >
             Let's Connect
           </Link>

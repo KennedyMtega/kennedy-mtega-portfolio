@@ -188,8 +188,8 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background effects */}
-      <div className="blur-circle w-[500px] h-[500px] bg-blue-400/20 left-[-250px] top-1/4"></div>
-      <div className="blur-circle w-[600px] h-[600px] bg-purple-400/15 right-[-300px] bottom-1/4"></div>
+      <div className="blur-circle w-[500px] h-[500px] bg-blue-400/20 absolute left-[-250px] top-1/4"></div>
+      <div className="blur-circle w-[600px] h-[600px] bg-purple-400/15 absolute right-[-300px] bottom-1/4"></div>
       
       {/* Canvas for Tanzania map animation */}
       <canvas 
@@ -197,7 +197,7 @@ const Hero = () => {
         className="absolute inset-0 w-full h-full z-0"
       ></canvas>
 
-      <div className="container relative z-10 px-4 py-24 md:py-32 flex flex-col items-center">
+      <div className="container relative z-10 px-4 md:px-8 py-16 md:py-24">
         <div className="text-center max-w-4xl mx-auto">
           <div className="animate-fade-in">
             <span className="inline-block py-1 px-3 mb-6 bg-primary/10 text-primary text-sm font-medium rounded-full">
@@ -205,7 +205,7 @@ const Hero = () => {
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-4">
             <AnimatedText 
               text="Kennedy Mtega:"
               className="block"
@@ -223,11 +223,11 @@ const Hero = () => {
             />
           </h1>
           
-          <p className="mt-6 text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto animate-fade-in">
+          <p className="mt-4 md:mt-6 text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl mx-auto animate-fade-in">
             Building systems that empower and connect communities across Tanzania through innovative technology solutions.
           </p>
           
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
+          <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
             <Button 
               to="/projects" 
               size="lg"
@@ -247,7 +247,7 @@ const Hero = () => {
       </div>
       
       {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-pulse-slow">
+      <div className="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-pulse-slow">
         <span className="text-sm text-foreground/60 mb-2">Scroll to explore</span>
         <div className="w-6 h-10 border-2 border-foreground/30 rounded-full flex justify-center">
           <div className="w-1.5 h-3 bg-foreground/60 rounded-full mt-2 animate-bounce"></div>

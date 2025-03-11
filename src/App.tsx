@@ -16,6 +16,11 @@ import Auth from "./pages/Auth";
 // Import Dashboard pages
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import DashboardProjects from "./pages/dashboard/Projects";
+import DashboardBlog from "./pages/dashboard/Blog";
+import DashboardMessages from "./pages/dashboard/Messages";
+import DashboardAnalytics from "./pages/dashboard/Analytics";
+import DashboardDonations from "./pages/dashboard/Donations";
+import DashboardSettings from "./pages/dashboard/Settings";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -34,13 +39,13 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           
           {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-          <Route path="/dashboard/projects" element={<DashboardLayout><DashboardProjects /></DashboardLayout>} />
-          <Route path="/dashboard/blog" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-          <Route path="/dashboard/messages" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-          <Route path="/dashboard/analytics" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-          <Route path="/dashboard/donations" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-          <Route path="/dashboard/settings" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard" element={<DashboardHome />} />
+          <Route path="/dashboard/projects" element={<DashboardProjects />} />
+          <Route path="/dashboard/blog" element={<DashboardBlog />} />
+          <Route path="/dashboard/messages" element={<DashboardMessages />} />
+          <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
+          <Route path="/dashboard/donations" element={<DashboardDonations />} />
+          <Route path="/dashboard/settings" element={<DashboardSettings />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

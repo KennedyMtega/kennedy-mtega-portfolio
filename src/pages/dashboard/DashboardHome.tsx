@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -63,9 +64,7 @@ const DashboardHome = () => {
   }, []);
 
   const dashboardContent = (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard Overview</h1>
-
+    <>
       {loading ? (
         <div className="flex items-center justify-center p-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -200,7 +199,7 @@ const DashboardHome = () => {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 
   return (

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Home, 
@@ -28,7 +29,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get current page title based on route
+  const getCurrentPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/dashboard') return 'Dashboard Overview';
+    if (path === '/dashboard/projects') return 'Projects';
+    if (path === '/dashboard/blog') return 'Blog Posts';
+    if (path === '/dashboard/messages') return 'Messages';
+    if (path === '/dashboard/analytics') return 'Analytics';
+    if (path === '/dashboard/donations') return 'Donations';
+    if (path === '/dashboard/settings') return 'Settings';
+    return 'Dashboard';
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -168,7 +183,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 to={item.path}
                 className={`flex items-center ${
                   collapsed ? 'justify-center' : 'justify-start'
-                } px-3 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-md`}
+                } px-3 py-3 ${
+                  location.pathname === item.path 
+                    ? 'text-white bg-white/20' 
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                } rounded-md`}
               >
                 <span className="flex-shrink-0">{item.icon}</span>
                 {!collapsed && <span className="ml-3">{item.name}</span>}
@@ -201,14 +220,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="flex items-center justify-between h-16 px-4 border-b bg-white dark:bg-gray-800 dark:border-gray-700">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="p-1 text-gray-600 rounded-md lg:hidden dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <Menu size={24} />
-          </button>
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+          <div className="flex items-center">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-1 mr-3 text-gray-600 rounded-md lg:hidden dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <Menu size={24} />
+            </button>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {getCurrentPageTitle()}
+            </h1>
           </div>
           <div className="flex items-center">
             <div className="text-sm text-gray-600 dark:text-gray-300 mr-4">
