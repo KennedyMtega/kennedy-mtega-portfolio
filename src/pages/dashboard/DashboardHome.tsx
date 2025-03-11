@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Settings as SettingsType } from '@/types/dashboard'; 
-import { Folder, Eye, Mail, FileText } from 'lucide-react';
-import { Settings } from 'lucide-react';
+import { Folder, Eye, Mail, FileText, Settings } from 'lucide-react';
 
 const DashboardHome = () => {
   const [stats, setStats] = useState({
@@ -63,8 +62,8 @@ const DashboardHome = () => {
     fetchDashboardData();
   }, []);
 
-  const dashboardContent = (
-    <>
+  return (
+    <DashboardLayout>
       {loading ? (
         <div className="flex items-center justify-center p-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -147,14 +146,14 @@ const DashboardHome = () => {
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
-                to="/dashboard/projects/new"
+                to="/dashboard/projects"
                 className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
               >
                 <Folder className="h-5 w-5 mr-2 text-primary" />
                 <span>Add New Project</span>
               </Link>
               <Link
-                to="/dashboard/blog/new"
+                to="/dashboard/blog"
                 className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
               >
                 <FileText className="h-5 w-5 mr-2 text-primary" />
@@ -199,12 +198,6 @@ const DashboardHome = () => {
           </div>
         </>
       )}
-    </>
-  );
-
-  return (
-    <DashboardLayout>
-      {dashboardContent}
     </DashboardLayout>
   );
 };

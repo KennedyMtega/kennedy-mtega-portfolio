@@ -18,12 +18,16 @@ const Index = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow pt-16">
+      <main className="flex-grow">
         <Hero />
         <Vision />
-        <ProjectShowcase />
+        <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
+          <ProjectShowcase />
+        </div>
         <Testimonials />
-        <BlogPreview />
+        <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
+          <BlogPreview />
+        </div>
         <Contact />
       </main>
       <Footer />
