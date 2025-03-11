@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, Outlet, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Home, 
@@ -23,16 +23,23 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const [collapsed, setCollapsed] = React.useState(false);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [user, setUser] = React.useState<any>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       try {
+        const storedUser = localStorage.getItem('userData');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+          setLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase.auth.getSession();
         
         if (error) throw error;
@@ -60,6 +67,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
+          localStorage.removeItem('userData');
           navigate('/auth');
         } else if (session) {
           setUser(session.user);
@@ -74,7 +82,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleSignOut = async () => {
     try {
+      localStorage.removeItem('userData');
       await supabase.auth.signOut();
+      
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
@@ -109,7 +119,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile sidebar backdrop */}
       {mobileOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -117,7 +126,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         ></div>
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#191970] text-white transition-all duration-300 ease-in-out lg:relative lg:z-0 
                    ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
@@ -191,9 +199,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Topbar */}
         <header className="flex items-center justify-between h-16 px-4 border-b bg-white dark:bg-gray-800 dark:border-gray-700">
           <button
             onClick={() => setMobileOpen(true)}
@@ -206,7 +212,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
           <div className="flex items-center">
             <div className="text-sm text-gray-600 dark:text-gray-300 mr-4">
-              {user?.email}
+              {user?.email || 'mtegakennedy@gmail.com'}
             </div>
             <button 
               className="p-1 text-gray-600 rounded-md dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -217,7 +223,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Content area - now rendering children instead of Outlet */}
         <main className="flex-1 overflow-y-auto px-4 py-6">
           {children}
         </main>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
@@ -8,7 +8,9 @@ import Button from '../ui/Button';
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -16,6 +18,32 @@ const Header = () => {
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const userData = localStorage.getItem('userData');
+      setIsLoggedIn(!!userData);
+    };
+    
+    checkAuth();
+    // Re-check on location change in case they logged out elsewhere
+    window.addEventListener('storage', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, [location]);
+
+  // Handle dashboard button click
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isLoggedIn) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   // Handle scroll effect for the header
   useEffect(() => {
@@ -69,12 +97,12 @@ const Header = () => {
             </Link>
           ))}
           <Button
-            to="/dashboard"
+            onClick={handleDashboardClick}
             variant="secondary"
             icon={<User size={16} />}
             iconPosition="left"
           >
-            Dashboard
+            {isLoggedIn ? 'Dashboard' : 'Login'}
           </Button>
           <Button
             to="/contact"
@@ -115,11 +143,11 @@ const Header = () => {
             </Link>
           ))}
           <Link
-            to="/dashboard"
+            to={isLoggedIn ? '/dashboard' : '/auth'}
             className="flex items-center text-2xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
           >
             <User size={20} className="mr-2" />
-            Dashboard
+            {isLoggedIn ? 'Dashboard' : 'Login'}
           </Link>
           <Link
             to="/contact"

@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
+import Auth from "./pages/Auth";
 
 // Import Dashboard pages
 import DashboardHome from "./pages/dashboard/DashboardHome";
@@ -30,10 +31,16 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/auth" element={<Auth />} />
           
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
           <Route path="/dashboard/projects" element={<DashboardLayout><DashboardProjects /></DashboardLayout>} />
+          <Route path="/dashboard/blog" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/messages" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/analytics" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/donations" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/settings" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

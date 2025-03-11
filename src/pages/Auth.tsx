@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,6 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,13 +28,14 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
+      // Check for hardcoded credentials first
+      if (email === 'mtegakennedy@gmail.com' && password === 'Helphelp@2024') {
+        // Simulate login success without actual Supabase auth
+        localStorage.setItem('userData', JSON.stringify({
+          email: 'mtegakennedy@gmail.com',
+          name: 'Kennedy Mtega',
+          role: 'admin'
+        }));
         
         toast({
           title: "Login successful",
@@ -44,19 +43,23 @@ const Auth = () => {
         });
         
         navigate('/dashboard');
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Registration successful",
-          description: "Please check your email for verification.",
-        });
+        return;
       }
+      
+      // Otherwise try normal supabase login
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back to your dashboard.",
+      });
+      
+      navigate('/dashboard');
     } catch (error: any) {
       toast({
         title: "Authentication error",
@@ -74,10 +77,10 @@ const Auth = () => {
         <div className="w-full max-w-sm mx-auto lg:w-96">
           <div>
             <h2 className="mt-6 text-3xl font-display font-bold tracking-tight text-gray-900 dark:text-white">
-              {isLogin ? 'Sign in to your account' : 'Create an account'}
+              Sign in to your account
             </h2>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {isLogin ? 'Enter your credentials to access your dashboard' : 'Sign up to access the dashboard'}
+              Enter your credentials to access your dashboard
             </p>
           </div>
 
@@ -138,22 +141,13 @@ const Auth = () => {
                       <Loader className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        {isLogin ? 'Sign in' : 'Sign up'}
+                        Sign in
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </>
                     )}
                   </button>
                 </div>
               </form>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm font-medium text-primary hover:text-primary/80"
-                >
-                  {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
-                </button>
-              </div>
             </div>
           </div>
         </div>
