@@ -8,11 +8,13 @@ import ProjectShowcase from '../components/home/ProjectShowcase';
 import Testimonials from '../components/home/Testimonials';
 import BlogPreview from '../components/home/BlogPreview';
 import Contact from '../components/home/Contact';
+import { trackPageView } from '../utils/analytics';
 
 const Index = () => {
-  // On mount, scroll to top of page
+  // On mount, scroll to top of page and track page view
   useEffect(() => {
     window.scrollTo(0, 0);
+    trackPageView('/');
   }, []);
 
   return (

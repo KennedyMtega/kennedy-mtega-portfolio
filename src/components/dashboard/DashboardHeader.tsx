@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, Bell } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface DashboardHeaderProps {
   user: any;
@@ -11,6 +12,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onToggleSidebar, onSignOut }) => {
   const location = useLocation();
+  const { toast } = useToast();
 
   // Get current page title based on route
   const getCurrentPageTitle = () => {
@@ -23,6 +25,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onToggleSidebar
     if (path === '/dashboard/donations') return 'Donations';
     if (path === '/dashboard/settings') return 'Settings';
     return 'Dashboard';
+  };
+
+  const showNotifications = () => {
+    toast({
+      title: "No new notifications",
+      description: "You're all caught up!",
+    });
   };
 
   return (
@@ -40,6 +49,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onToggleSidebar
         </h1>
       </div>
       <div className="flex items-center">
+        <button
+          onClick={showNotifications}
+          className="p-1 mr-3 text-gray-600 rounded-md dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+          aria-label="Notifications"
+        >
+          <Bell size={20} />
+        </button>
         <div className="text-sm text-gray-600 dark:text-gray-300 mr-4">
           {user?.email || 'mtegakennedy@gmail.com'}
         </div>

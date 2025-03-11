@@ -4,11 +4,13 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import ContactForm from '../components/contact/ContactForm';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { trackPageView } from '../utils/analytics';
 
 const Contact = () => {
-  // On mount, scroll to top of page
+  // On mount, scroll to top of page and track page view
   useEffect(() => {
     window.scrollTo(0, 0);
+    trackPageView('/contact');
   }, []);
 
   return (
