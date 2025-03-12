@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/types/dashboard';
 import Button from '@/components/ui/Button';
 import { ExternalLink, Github, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);

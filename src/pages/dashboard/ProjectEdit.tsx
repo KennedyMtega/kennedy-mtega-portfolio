@@ -2,34 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Project } from '@/types/dashboard';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { ExternalLink, Github, Upload, X, Plus, Trash } from 'lucide-react';
 import ProjectForm from '@/components/dashboard/ProjectForm';
-
-// Add the interface here to match the expected props
-interface ProjectFormProps {
-  initialValues?: any;
-  onSubmit: (values: any) => Promise<void>;
-  loading: boolean;
-}
+import { Upload, ArrowLeft, Github } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import Button from '@/components/ui/Button';
 
 const ProjectEdit = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [project, setProject] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Determine if we're editing an existing project or creating a new one
+  const isEditMode = id !== 'new';
 
   useEffect(() => {
-    if (id) {
-      fetchProject(id);
+    if (isEditMode) {
+      fetchProject();
     }
   }, [id]);
 
-  const fetchProject = async (id: string) => {
+  const fetchProject = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -38,77 +35,114 @@ const ProjectEdit = () => {
         .eq('id', id)
         .single();
 
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       setProject(data);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error fetching project:', err);
       toast({
-        title: 'Error fetching project',
-        description: err.message,
-        variant: 'destructive',
+        title: "Error",
+        description: `Could not load project: ${err.message}`,
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdate = async (values: any) => {
+  const handleSubmit = async (values: any) => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('projects')
-        .update(values)
-        .eq('id', id);
+      setIsSaving(true);
+      
+      // Format data for Supabase
+      const projectData = {
+        title: values.title,
+        slug: values.slug,
+        short_description: values.short_description,
+        full_description: values.full_description,
+        technologies: values.technologies || [],
+        github_url: values.github_url,
+        project_url: values.project_url,
+        image_url: values.image_url,
+        preview_image_url: values.preview_image_url,
+        featured: values.featured || false,
+        order_index: values.order_index || 0,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) {
-        throw error;
+      let result;
+      
+      if (isEditMode) {
+        // Update existing project
+        result = await supabase
+          .from('projects')
+          .update(projectData)
+          .eq('id', id);
+      } else {
+        // Create new project
+        result = await supabase
+          .from('projects')
+          .insert([{ ...projectData, created_at: new Date().toISOString() }]);
       }
 
+      const { error } = result;
+      
+      if (error) throw error;
+      
       toast({
-        title: 'Project updated',
-        description: 'Project updated successfully.',
+        title: isEditMode ? "Project updated" : "Project created",
+        description: isEditMode 
+          ? "Your project has been updated successfully." 
+          : "Your new project has been created successfully.",
       });
+      
+      // Redirect to projects list
       navigate('/dashboard/projects');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error saving project:', err);
       toast({
-        title: 'Error updating project',
-        description: err.message,
-        variant: 'destructive',
+        title: "Error",
+        description: `Could not save project: ${err.message}`,
+        variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div>Loading...</div>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <div>Error: {error}</div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-semibold mb-5">Edit Project</h1>
-        {project && (
-          <ProjectForm
-            initialValues={project}
-            onSubmit={handleUpdate}
-            loading={loading}
+      <div className="p-6">
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/dashboard/projects')}
+            icon={<ArrowLeft size={16} />}
+          >
+            Back to Projects
+          </Button>
+        </div>
+        
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">
+            {isEditMode ? 'Edit Project' : 'Create New Project'}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            {isEditMode 
+              ? 'Update your project details below' 
+              : 'Fill in the details for your new project'}
+          </p>
+        </div>
+        
+        {isEditMode && loading ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <ProjectForm 
+            project={project} 
+            onSubmit={handleSubmit} 
+            loading={isSaving} 
           />
         )}
       </div>
