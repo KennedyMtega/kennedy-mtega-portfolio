@@ -59,7 +59,9 @@ const ProjectEdit = () => {
         slug: values.slug,
         short_description: values.short_description,
         full_description: values.full_description,
-        technologies: values.technologies || [],
+        technologies: Array.isArray(values.technologies) 
+          ? values.technologies 
+          : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean),
         github_url: values.github_url,
         project_url: values.project_url,
         image_url: values.image_url,
