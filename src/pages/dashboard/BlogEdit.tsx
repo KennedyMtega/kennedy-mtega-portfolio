@@ -17,6 +17,7 @@ type BlogFormData = {
   image_url: string;
   published: boolean;
   featured: boolean;
+  published_at?: string; // Added this missing property
 };
 
 const DashboardBlogEdit = () => {
@@ -69,7 +70,8 @@ const DashboardBlogEdit = () => {
           tags: data.tags || [],
           image_url: data.image_url || '',
           published: data.published || false,
-          featured: data.featured || false
+          featured: data.featured || false,
+          published_at: data.published_at // Added this to capture the published_at field
         });
       }
     } catch (error: any) {
@@ -255,7 +257,10 @@ const DashboardBlogEdit = () => {
               icon={<ArrowLeft size={16} />}
               onClick={() => navigate('/dashboard/blog')}
               className="mr-3"
-            />
+            >
+              {/* Added empty string as children to satisfy the type requirement */}
+              <span className="sr-only">Back</span>
+            </Button>
             <h1 className="text-2xl font-bold">
               {isNewPost ? 'Create New Blog Post' : 'Edit Blog Post'}
             </h1>
