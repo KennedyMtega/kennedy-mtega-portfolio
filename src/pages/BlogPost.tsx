@@ -109,102 +109,104 @@ const BlogPost = () => {
               </Button>
             </div>
           ) : post ? (
-            <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border overflow-hidden">
-              {post.image_url && (
-                <div className="w-full aspect-video overflow-hidden">
-                  <img 
-                    src={post.image_url} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="p-6 md:p-8">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  {post.title}
-                </h1>
-                
-                <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  <div className="flex items-center mr-4 mb-2">
-                    <User size={16} className="mr-1" />
-                    <span>{post.author}</span>
-                  </div>
-                  <div className="flex items-center mr-4 mb-2">
-                    <Calendar size={16} className="mr-1" />
-                    <time dateTime={post.created_at}>{formatDate(post.published_at || post.created_at)}</time>
-                  </div>
-                  <div className="flex items-center mb-2">
-                    <Tag size={16} className="mr-1" />
-                    <span>{post.category}</span>
-                  </div>
-                </div>
-                
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {post.tags.map((tag: string) => (
-                      <span 
-                        key={tag}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+            <>
+              <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border overflow-hidden">
+                {post.image_url && (
+                  <div className="w-full aspect-video overflow-hidden">
+                    <img 
+                      src={post.image_url} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
                 
-                <div className="prose dark:prose-invert max-w-none">
-                  {/* In a real app, you might want to use a markdown parser here */}
-                  <p className="text-lg mb-6">{post.excerpt}</p>
-                  <div className="whitespace-pre-line">{post.content}</div>
+                <div className="p-6 md:p-8">
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    {post.title}
+                  </h1>
+                  
+                  <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    <div className="flex items-center mr-4 mb-2">
+                      <User size={16} className="mr-1" />
+                      <span>{post.author}</span>
+                    </div>
+                    <div className="flex items-center mr-4 mb-2">
+                      <Calendar size={16} className="mr-1" />
+                      <time dateTime={post.created_at}>{formatDate(post.published_at || post.created_at)}</time>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <Tag size={16} className="mr-1" />
+                      <span>{post.category}</span>
+                    </div>
+                  </div>
+                  
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {post.tags.map((tag: string) => (
+                        <span 
+                          key={tag}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="prose dark:prose-invert max-w-none">
+                    {/* In a real app, you might want to use a markdown parser here */}
+                    <p className="text-lg mb-6">{post.excerpt}</p>
+                    <div className="whitespace-pre-line">{post.content}</div>
+                  </div>
                 </div>
-              </div>
-            </article>
-            
-            {relatedPosts.length > 0 && (
-              <div className="mt-12">
-                <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {relatedPosts.map((relatedPost) => (
-                    <div 
-                      key={relatedPost.id}
-                      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border overflow-hidden"
-                    >
-                      {relatedPost.image_url && (
-                        <div className="aspect-video overflow-hidden">
-                          <img 
-                            src={relatedPost.image_url} 
-                            alt={relatedPost.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg mb-2">
+              </article>
+              
+              {relatedPosts.length > 0 && (
+                <div className="mt-12">
+                  <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {relatedPosts.map((relatedPost) => (
+                      <div 
+                        key={relatedPost.id}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border overflow-hidden"
+                      >
+                        {relatedPost.image_url && (
+                          <div className="aspect-video overflow-hidden">
+                            <img 
+                              src={relatedPost.image_url} 
+                              alt={relatedPost.title} 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="font-bold text-lg mb-2">
+                            <Link 
+                              to={`/blog/${relatedPost.slug}`}
+                              className="text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary"
+                            >
+                              {relatedPost.title}
+                            </Link>
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                            {relatedPost.excerpt}
+                          </p>
                           <Link 
                             to={`/blog/${relatedPost.slug}`}
-                            className="text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary"
+                            className="text-primary hover:underline text-sm font-medium"
                           >
-                            {relatedPost.title}
+                            Read More
                           </Link>
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                          {relatedPost.excerpt}
-                        </p>
-                        <Link 
-                          to={`/blog/${relatedPost.slug}`}
-                          className="text-primary hover:underline text-sm font-medium"
-                        >
-                          Read More
-                        </Link>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : null}
+              )}
+            </>
+          ) : null}
+        </div>
       </main>
       <Footer />
     </div>
