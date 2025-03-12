@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/types/dashboard';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProjectForm from '@/components/dashboard/ProjectForm';
-import { Upload, ArrowLeft, Github } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Button from '@/components/ui/Button';
 
@@ -24,7 +24,7 @@ const ProjectEdit = () => {
     if (isEditMode) {
       fetchProject();
     }
-  }, [id]);
+  }, [id, isEditMode]);
 
   const fetchProject = async () => {
     try {
@@ -64,7 +64,6 @@ const ProjectEdit = () => {
           : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean),
         github_url: values.github_url,
         project_url: values.project_url,
-        image_url: values.image_url,
         preview_image_url: values.preview_image_url,
         featured: values.featured || false,
         order_index: values.order_index || 0,
