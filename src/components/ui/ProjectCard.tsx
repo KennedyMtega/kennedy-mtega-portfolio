@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Project } from '@/types/dashboard';
-import { ExternalLink, GitHub, Code } from 'lucide-react';
+import { ExternalLink, Github, Code } from 'lucide-react';
 
 interface ProjectCardProps {
   project: Project;
@@ -84,7 +83,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, featured = false }) 
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               >
-                <GitHub size={18} />
+                <Github size={18} />
               </a>
             )}
             {project.project_url && (

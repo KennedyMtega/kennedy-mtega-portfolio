@@ -40,7 +40,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   VariantProps<typeof buttonVariants> {
   children: React.ReactNode;
   to?: string;
-  external?: string;
+  href?: string; // Add href prop for external links
+  target?: string;
+  rel?: string;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
   loading?: boolean;
@@ -53,7 +55,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     size = 'md',
     children,
     to,
-    external,
+    href,
+    target,
+    rel,
     className,
     icon,
     iconPosition = 'right',
@@ -109,12 +113,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
-    if (external) {
+    if (href) {
       return (
         <a
-          href={external}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={href}
+          target={target}
+          rel={rel}
           className={baseStyles}
           {...(props as any)}
         >

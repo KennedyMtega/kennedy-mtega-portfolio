@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +5,7 @@ import { Project } from '@/types/dashboard';
 import { trackPageView } from '@/utils/analytics';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { ArrowLeft, Calendar, Code, ExternalLink, GitHub } from 'lucide-react';
+import { ArrowLeft, Calendar, Code, ExternalLink, Github } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 const ProjectDetail = () => {
@@ -162,7 +161,6 @@ const ProjectDetail = () => {
                     <div className="mt-8 flex flex-wrap gap-4">
                       {project.project_url && (
                         <Button
-                          as="a"
                           href={project.project_url}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -174,12 +172,11 @@ const ProjectDetail = () => {
                       )}
                       {project.github_url && (
                         <Button
-                          as="a"
                           href={project.github_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           variant="outline"
-                          icon={<GitHub size={16} />}
+                          icon={<Github size={16} />}
                         >
                           View Source
                         </Button>
