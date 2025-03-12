@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 // Import Dashboard pages
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import DashboardProjects from "./pages/dashboard/Projects";
+import ProjectEdit from "./pages/dashboard/ProjectEdit";
 import DashboardBlog from "./pages/dashboard/Blog";
 import DashboardBlogEdit from "./pages/dashboard/BlogEdit";
 import DashboardMessages from "./pages/dashboard/Messages";
@@ -45,6 +47,8 @@ const App = () => (
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardHome />} />
           <Route path="/dashboard/projects" element={<DashboardProjects />} />
+          <Route path="/dashboard/projects/new" element={<ProjectEdit />} />
+          <Route path="/dashboard/projects/edit/:id" element={<ProjectEdit />} />
           <Route path="/dashboard/blog" element={<DashboardBlog />} />
           <Route path="/dashboard/blog/new" element={<DashboardBlogEdit />} />
           <Route path="/dashboard/blog/edit/:id" element={<DashboardBlogEdit />} />
