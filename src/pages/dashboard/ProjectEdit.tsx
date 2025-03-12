@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,6 +6,13 @@ import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ExternalLink, Github, Upload, X, Plus, Trash } from 'lucide-react';
 import ProjectForm from '@/components/dashboard/ProjectForm';
+
+// Add the interface here to match the expected props
+interface ProjectFormProps {
+  initialValues?: any;
+  onSubmit: (values: any) => Promise<void>;
+  loading: boolean;
+}
 
 const ProjectEdit = () => {
   const { id } = useParams<{ id: string }>();

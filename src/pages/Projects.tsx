@@ -151,7 +151,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         
         {project.github_url && (
           <Button
-            external={project.github_url}
+            href={project.github_url}
+            target="_blank"
+            rel="noopener noreferrer"
             variant="outline"
             size="sm"
             icon={<Github size={14} />}
@@ -163,7 +165,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         
         {project.project_url && (
           <Button
-            external={project.project_url}
+            href={project.project_url}
+            target="_blank"
+            rel="noopener noreferrer"
             variant="outline"
             size="sm"
             icon={<ExternalLink size={14} />}
