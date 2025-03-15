@@ -16,12 +16,32 @@ const ProjectEdit = () => {
   const { toast } = useToast();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create or edit projects",
+          variant: "destructive",
+        });
+        navigate('/auth');
+      } else {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && authChecked) {
       fetchProject();
     }
-  }, [id, isEditMode]);
+  }, [id, isEditMode, authChecked]);
 
   const fetchProject = async () => {
     try {
@@ -50,24 +70,41 @@ const ProjectEdit = () => {
     try {
       setLoading(true);
       
+      // Confirm user is authenticated before proceeding
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create or edit projects",
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
+      }
+      
+      // Ensure technologies is an array
+      const technologies = Array.isArray(values.technologies) 
+        ? values.technologies 
+        : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean);
+      
       // Prepare data for insertion/update
       const projectData = {
         title: values.title,
         slug: values.slug,
         short_description: values.short_description,
         full_description: values.full_description,
-        technologies: Array.isArray(values.technologies) 
-          ? values.technologies 
-          : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean),
-        github_url: values.github_url,
-        project_url: values.project_url,
-        image_url: values.image_url,
-        preview_image_url: values.preview_image_url,
+        technologies: technologies,
+        github_url: values.github_url || null,
+        project_url: values.project_url || null,
+        image_url: values.image_url || null,
+        preview_image_url: values.preview_image_url || null,
         featured: values.featured || false,
         order_index: values.order_index || 0,
       };
       
       let result;
+      
+      console.log('Saving project data:', projectData);
       
       if (isEditMode) {
         // Update existing project
@@ -82,7 +119,10 @@ const ProjectEdit = () => {
           .insert([projectData]);
       }
       
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw result.error;
+      }
       
       toast({
         title: isEditMode ? "Project updated" : "Project created",
@@ -103,6 +143,21 @@ const ProjectEdit = () => {
       setLoading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Checking authentication...</h2>
+              <p className="text-gray-500">Please wait while we verify your credentials</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
