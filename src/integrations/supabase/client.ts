@@ -17,6 +17,8 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       storageKey: 'supabase.auth.token',
+      detectSessionInUrl: true,
+      flowType: 'implicit'
     }
   }
 );

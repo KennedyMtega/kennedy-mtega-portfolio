@@ -15,7 +15,7 @@ const ProjectEdit = () => {
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, session, isLoading: authLoading } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -53,9 +53,7 @@ const ProjectEdit = () => {
     try {
       setLoading(true);
       
-      // Check authentication status first
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      // Ensure we have a valid session
       if (!session) {
         console.error("No active session found");
         toast({
@@ -67,7 +65,7 @@ const ProjectEdit = () => {
         return;
       }
       
-      console.log("Active session found:", session?.user?.id);
+      console.log("Active session found:", session.user.id);
       
       // Ensure technologies is an array
       const technologies = Array.isArray(values.technologies) 

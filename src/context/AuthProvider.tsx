@@ -3,9 +3,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Session, User } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  session: Session | null;
   signOut: () => Promise<void>;
   isLoading: boolean;
 }
@@ -21,26 +23,25 @@ export const useAuth = (): AuthContextType => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Setting up auth provider...");
+    
     // Set up auth listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event, currentSession) => {
         console.log('Auth state changed:', event);
         
-        if (session) {
-          const userData = session.user;
-          // Store user data in localStorage to prevent session loss
-          localStorage.setItem('userData', JSON.stringify(userData));
-          setUser(userData);
-          setIsLoading(false);
-        } else if (event === 'SIGNED_OUT') {
+        setSession(currentSession);
+        setUser(currentSession?.user || null);
+        
+        if (event === 'SIGNED_OUT') {
           localStorage.removeItem('userData');
-          setUser(null);
           navigate('/auth');
         }
       }
@@ -49,15 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Then check for existing session
     const checkAuth = async () => {
       try {
-        // First check if we have cached user data
-        const cachedUser = localStorage.getItem('userData');
-        if (cachedUser) {
-          setUser(JSON.parse(cachedUser));
-          setIsLoading(false);
-          return;
-        }
-
-        // If no cached data, check with Supabase
+        // First try to get session from supabase
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -65,13 +58,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (data.session) {
-          const userData = data.session.user;
-          localStorage.setItem('userData', JSON.stringify(userData));
-          setUser(userData);
+          console.log("Found existing session:", data.session.user.id);
+          setSession(data.session);
+          setUser(data.session.user);
+          
+          // Also store in localStorage for backup
+          localStorage.setItem('userData', JSON.stringify(data.session.user));
         } else {
-          // User is not logged in, but don't redirect automatically
-          // Let the protected routes handle redirects
-          setUser(null);
+          // If no session in supabase, check localStorage backup
+          const cachedUser = localStorage.getItem('userData');
+          if (cachedUser) {
+            console.log("Using cached user data");
+            setUser(JSON.parse(cachedUser));
+          } else {
+            console.log("No user session found");
+            setUser(null);
+          }
         }
       } catch (err: any) {
         console.error('Auth check error:', err);
@@ -113,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, signOut, isLoading }}>
+    <AuthContext.Provider value={{ user, session, signOut, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
