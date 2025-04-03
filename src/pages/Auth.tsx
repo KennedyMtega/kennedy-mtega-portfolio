@@ -14,8 +14,18 @@ const Auth = () => {
   // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
+      // First check localStorage for cached user data
+      const cachedUser = localStorage.getItem('userData');
+      if (cachedUser) {
+        navigate('/dashboard');
+        return;
+      }
+      
+      // Then check with Supabase
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        // Store user data in localStorage
+        localStorage.setItem('userData', JSON.stringify(data.session.user));
         navigate('/dashboard');
       }
     };
@@ -30,12 +40,14 @@ const Auth = () => {
     try {
       // Check for hardcoded credentials first
       if (email === 'mtegakennedy@gmail.com' && password === 'Helphelp@2024') {
-        // Simulate login success without actual Supabase auth
-        localStorage.setItem('userData', JSON.stringify({
+        // Store hardcoded user data in localStorage
+        const userData = {
           email: 'mtegakennedy@gmail.com',
           name: 'Kennedy Mtega',
           role: 'admin'
-        }));
+        };
+        
+        localStorage.setItem('userData', JSON.stringify(userData));
         
         toast({
           title: "Login successful",
@@ -47,12 +59,15 @@ const Auth = () => {
       }
       
       // Otherwise try normal supabase login
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
+      
+      // Store user data in localStorage
+      localStorage.setItem('userData', JSON.stringify(data.user));
       
       toast({
         title: "Login successful",

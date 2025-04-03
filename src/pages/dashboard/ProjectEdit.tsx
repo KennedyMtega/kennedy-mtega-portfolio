@@ -19,24 +19,24 @@ const ProjectEdit = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  // Set up authentication listener and check for existing session
+  // Improved authentication check that persists session data
   useEffect(() => {
     // First set up the auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
         if (session) {
+          // Store user data in localStorage to prevent session loss
+          localStorage.setItem('userData', JSON.stringify(session.user));
           setUser(session.user);
           setAuthChecked(true);
         } else {
-          setUser(null);
-          // Only redirect if not already on auth page
-          if (window.location.pathname !== '/auth') {
-            toast({
-              title: "Authentication required",
-              description: "Please sign in to create or edit projects",
-              variant: "destructive",
-            });
+          // Check if we have cached user data before redirecting
+          const cachedUser = localStorage.getItem('userData');
+          if (cachedUser) {
+            setUser(JSON.parse(cachedUser));
+            setAuthChecked(true);
+          } else {
+            setUser(null);
             navigate('/auth');
           }
         }
@@ -46,22 +46,26 @@ const ProjectEdit = () => {
     // Then check for existing session
     const checkAuth = async () => {
       try {
-        console.log('Checking authentication...');
+        // First check if we have cached user data
+        const cachedUser = localStorage.getItem('userData');
+        if (cachedUser) {
+          setUser(JSON.parse(cachedUser));
+          setAuthChecked(true);
+          return;
+        }
+
+        // If no cached data, check with Supabase
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error checking auth:', error);
           throw error;
         }
         
-        console.log('Session data:', data);
-        
         if (data.session) {
-          console.log('User is authenticated:', data.session.user.id);
+          localStorage.setItem('userData', JSON.stringify(data.session.user));
           setUser(data.session.user);
           setAuthChecked(true);
         } else {
-          console.log('No active session, redirecting to auth');
           toast({
             title: "Authentication required",
             description: "Please sign in to create or edit projects",
@@ -120,28 +124,27 @@ const ProjectEdit = () => {
     try {
       setLoading(true);
       
-      // Get current session to double-check authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.error('No active session when submitting form');
-        toast({
-          title: "Authentication required",
-          description: "Your session has expired. Please sign in again.",
-          variant: "destructive",
-        });
-        navigate('/auth');
-        return;
+      // Make sure we have a user before proceeding
+      if (!user) {
+        // Try to get cached user
+        const cachedUser = localStorage.getItem('userData');
+        if (!cachedUser) {
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to create or edit projects",
+            variant: "destructive",
+          });
+          navigate('/auth');
+          return;
+        }
       }
-      
-      console.log('Authenticated as:', session.user.id);
       
       // Ensure technologies is an array
       const technologies = Array.isArray(values.technologies) 
         ? values.technologies 
         : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean);
       
-      // Prepare data for insertion/update using a typed interface
+      // Prepare project data with proper typing
       interface ProjectData {
         title: string;
         slug: string;
@@ -178,26 +181,20 @@ const ProjectEdit = () => {
         projectData.created_at = new Date().toISOString();
       }
       
-      console.log('Saving project data:', projectData);
-      
       let result;
       
       if (isEditMode) {
         // Update existing project
-        console.log('Updating project with ID:', id);
         result = await supabase
           .from('projects')
           .update(projectData)
           .eq('id', id);
       } else {
         // Insert new project
-        console.log('Creating new project');
         result = await supabase
           .from('projects')
           .insert(projectData);
       }
-      
-      console.log('Supabase operation result:', result);
       
       if (result.error) {
         console.error('Supabase error:', result.error);

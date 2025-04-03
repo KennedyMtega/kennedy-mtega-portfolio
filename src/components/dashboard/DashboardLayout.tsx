@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   LayoutDashboard, 
@@ -16,7 +15,7 @@ import {
   X,
   MessageSquare
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthProvider';
 import DashboardHeader from './DashboardHeader';
 
 interface DashboardLayoutProps {
@@ -26,80 +25,8 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const storedUser = localStorage.getItem('userData');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-          setLoading(false);
-          return;
-        }
-        
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) throw error;
-        
-        if (!data.session) {
-          navigate('/auth');
-          return;
-        }
-        
-        setUser(data.session.user);
-      } catch (error: any) {
-        toast({
-          title: "Authentication error",
-          description: error.message,
-          variant: "destructive",
-        });
-        navigate('/auth');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkAuth();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('userData');
-          navigate('/auth');
-        } else if (session) {
-          setUser(session.user);
-        }
-      }
-    );
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
-
-  const handleSignOut = async () => {
-    try {
-      localStorage.removeItem('userData');
-      await supabase.auth.signOut();
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
-      });
-      navigate('/auth');
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+  const { user, signOut, isLoading } = useAuth();
 
   const navItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
@@ -111,7 +38,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { name: 'Settings', icon: <Settings size={20} />, path: '/dashboard/settings' },
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
@@ -194,7 +121,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {!collapsed && <span className="ml-3">Back to Site</span>}
           </Link>
           <button
-            onClick={handleSignOut}
+            onClick={signOut}
             className={`flex items-center ${
               collapsed ? 'justify-center' : 'justify-start'
             } w-full px-3 py-3 mt-2 text-white/80 hover:text-white hover:bg-white/10 rounded-md`}
@@ -209,7 +136,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <DashboardHeader 
           user={user}
           onToggleSidebar={() => setMobileOpen(true)}
-          onSignOut={handleSignOut}
+          onSignOut={signOut}
         />
 
         <main className="flex-1 overflow-y-auto px-4 py-6">

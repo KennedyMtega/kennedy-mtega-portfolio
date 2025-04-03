@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -34,32 +35,34 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/projects/:slug" element={<ProjectDetail />} />
-          
-          {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/projects" element={<DashboardProjects />} />
-          <Route path="/dashboard/projects/new" element={<ProjectEdit />} />
-          <Route path="/dashboard/projects/edit/:id" element={<ProjectEdit />} />
-          <Route path="/dashboard/blog" element={<DashboardBlog />} />
-          <Route path="/dashboard/blog/new" element={<DashboardBlogEdit />} />
-          <Route path="/dashboard/blog/edit/:id" element={<DashboardBlogEdit />} />
-          <Route path="/dashboard/messages" element={<DashboardMessages />} />
-          <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
-          <Route path="/dashboard/donations" element={<DashboardDonations />} />
-          <Route path="/dashboard/settings" element={<DashboardSettings />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/projects/:slug" element={<ProjectDetail />} />
+            
+            {/* Dashboard Routes */}
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route path="/dashboard/projects" element={<DashboardProjects />} />
+            <Route path="/dashboard/projects/new" element={<ProjectEdit />} />
+            <Route path="/dashboard/projects/edit/:id" element={<ProjectEdit />} />
+            <Route path="/dashboard/blog" element={<DashboardBlog />} />
+            <Route path="/dashboard/blog/new" element={<DashboardBlogEdit />} />
+            <Route path="/dashboard/blog/edit/:id" element={<DashboardBlogEdit />} />
+            <Route path="/dashboard/messages" element={<DashboardMessages />} />
+            <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
+            <Route path="/dashboard/donations" element={<DashboardDonations />} />
+            <Route path="/dashboard/settings" element={<DashboardSettings />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
