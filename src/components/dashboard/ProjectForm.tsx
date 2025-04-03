@@ -19,10 +19,13 @@ import { Switch } from '@/components/ui/switch';
 import Button from '@/components/ui/Button';
 import { generatePreviewFromUrl, isValidUrl } from '@/utils/previewUtils';
 import { ExternalLink, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const projectSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  slug: z.string().min(1, 'Slug is required'),
+  slug: z.string().min(1, 'Slug is required')
+    .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens')
+    .transform(val => val.toLowerCase()),
   short_description: z.string().min(1, 'Short description is required'),
   full_description: z.string().min(1, 'Full description is required'),
   technologies: z.string().optional(),
@@ -45,6 +48,7 @@ export interface ProjectFormProps {
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading }) => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(project?.preview_image_url || null);
+  const { toast } = useToast();
   
   const defaultValues: Partial<ProjectFormValues> = {
     title: project?.title || '',
@@ -78,14 +82,46 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
     }
     
     setPreviewLoading(true);
-    const previewUrl = generatePreviewFromUrl(projectUrl);
-    setPreviewImageUrl(previewUrl);
-    form.setValue('preview_image_url', previewUrl);
     
-    // Simulate loading since we can't directly check if the image is ready
-    setTimeout(() => {
-      setPreviewLoading(false);
-    }, 1500);
+    try {
+      const previewUrl = generatePreviewFromUrl(projectUrl);
+      setPreviewImageUrl(previewUrl);
+      form.setValue('preview_image_url', previewUrl);
+      
+      toast({
+        title: "Preview generated",
+        description: "Preview image has been generated successfully",
+      });
+    } catch (error) {
+      console.error("Error generating preview:", error);
+      toast({
+        title: "Error generating preview",
+        description: "Could not generate preview image. Please try again or enter URL manually.",
+        variant: "destructive",
+      });
+    } finally {
+      // Simulate loading since we can't directly check if the image is ready
+      setTimeout(() => {
+        setPreviewLoading(false);
+      }, 1500);
+    }
+  };
+
+  // Handle the URL auto-slugification
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const title = event.target.value;
+    const currentSlug = form.getValues('slug');
+    
+    // Only auto-generate slug if the user hasn't manually entered one
+    if (!currentSlug || currentSlug === '') {
+      const slug = title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+      
+      form.setValue('slug', slug);
+    }
   };
 
   return (
@@ -99,7 +135,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
               <FormItem>
                 <FormLabel>Project Title *</FormLabel>
                 <FormControl>
-                  <Input placeholder="My Awesome Project" {...field} />
+                  <Input 
+                    placeholder="My Awesome Project" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleTitleChange(e);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,6 +158,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
                 <FormControl>
                   <Input placeholder="my-awesome-project" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Only lowercase letters, numbers, and hyphens
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

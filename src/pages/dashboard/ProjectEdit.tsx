@@ -53,8 +53,11 @@ const ProjectEdit = () => {
     try {
       setLoading(true);
       
-      // Make sure we have a user before proceeding
-      if (!user) {
+      // Check authentication status first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error("No active session found");
         toast({
           title: "Authentication required",
           description: "Please sign in to create or edit projects",
@@ -63,6 +66,8 @@ const ProjectEdit = () => {
         navigate('/auth');
         return;
       }
+      
+      console.log("Active session found:", session?.user?.id);
       
       // Ensure technologies is an array
       const technologies = Array.isArray(values.technologies) 
@@ -146,6 +151,7 @@ const ProjectEdit = () => {
     }
   };
 
+  // If authentication is loading, show loading state
   if (authLoading) {
     return (
       <DashboardLayout>
@@ -161,6 +167,7 @@ const ProjectEdit = () => {
     );
   }
 
+  // If user is not authenticated, show auth required message
   if (!user) {
     return (
       <DashboardLayout>
