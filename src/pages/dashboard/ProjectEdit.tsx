@@ -142,7 +142,7 @@ const ProjectEdit = () => {
         : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean);
       
       // Prepare data for insertion/update
-      const projectData = {
+      const projectData: Record<string, any> = {
         title: values.title,
         slug: values.slug,
         short_description: values.short_description,
