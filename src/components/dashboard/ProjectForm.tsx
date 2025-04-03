@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,12 +10,15 @@ import {
   FormField, 
   FormItem, 
   FormLabel, 
-  FormMessage 
+  FormMessage, 
+  FormDescription 
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import Button from '@/components/ui/Button';
+import { generatePreviewFromUrl, isValidUrl } from '@/utils/previewUtils';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 
 const projectSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -40,6 +43,9 @@ export interface ProjectFormProps {
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading }) => {
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(project?.preview_image_url || null);
+  
   const defaultValues: Partial<ProjectFormValues> = {
     title: project?.title || '',
     slug: project?.slug || '',
@@ -58,6 +64,29 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
     resolver: zodResolver(projectSchema),
     defaultValues,
   });
+  
+  // Generate a preview image from the project URL
+  const generatePreview = () => {
+    const projectUrl = form.getValues('project_url');
+    
+    if (!projectUrl || !isValidUrl(projectUrl)) {
+      form.setError('project_url', { 
+        type: 'manual', 
+        message: 'Please enter a valid URL to generate a preview' 
+      });
+      return;
+    }
+    
+    setPreviewLoading(true);
+    const previewUrl = generatePreviewFromUrl(projectUrl);
+    setPreviewImageUrl(previewUrl);
+    form.setValue('preview_image_url', previewUrl);
+    
+    // Simulate loading since we can't directly check if the image is ready
+    setTimeout(() => {
+      setPreviewLoading(false);
+    }, 1500);
+  };
 
   return (
     <Form {...form}>
@@ -159,9 +188,24 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Live Project URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://myproject.com" {...field} />
-                </FormControl>
+                <div className="flex space-x-2">
+                  <FormControl>
+                    <Input placeholder="https://myproject.com" {...field} />
+                  </FormControl>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    disabled={previewLoading}
+                    onClick={generatePreview}
+                    className="flex-shrink-0"
+                    icon={previewLoading ? <RefreshCw className="animate-spin h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                  >
+                    {previewLoading ? "Generating..." : "Generate Preview"}
+                  </Button>
+                </div>
+                <FormDescription>
+                  Enter your live project URL and click "Generate Preview" to automatically create a preview image.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -192,6 +236,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
                 <FormControl>
                   <Input placeholder="https://example.com/thumbnail.jpg" {...field} />
                 </FormControl>
+                {previewImageUrl && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                    <div className="border border-border rounded-md overflow-hidden h-24 w-full bg-gray-50">
+                      <img 
+                        src={previewImageUrl} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onError={() => setPreviewImageUrl(null)}
+                      />
+                    </div>
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}

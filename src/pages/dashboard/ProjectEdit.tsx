@@ -8,94 +8,23 @@ import ProjectForm from '@/components/dashboard/ProjectForm';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Button from '@/components/ui/Button';
+import { useAuth } from '@/context/AuthProvider';
 
 const ProjectEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [user, setUser] = useState<any>(null);
 
-  // Improved authentication check that persists session data
+  // Fetch project data if in edit mode
   useEffect(() => {
-    // First set up the auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          // Store user data in localStorage to prevent session loss
-          localStorage.setItem('userData', JSON.stringify(session.user));
-          setUser(session.user);
-          setAuthChecked(true);
-        } else {
-          // Check if we have cached user data before redirecting
-          const cachedUser = localStorage.getItem('userData');
-          if (cachedUser) {
-            setUser(JSON.parse(cachedUser));
-            setAuthChecked(true);
-          } else {
-            setUser(null);
-            navigate('/auth');
-          }
-        }
-      }
-    );
-
-    // Then check for existing session
-    const checkAuth = async () => {
-      try {
-        // First check if we have cached user data
-        const cachedUser = localStorage.getItem('userData');
-        if (cachedUser) {
-          setUser(JSON.parse(cachedUser));
-          setAuthChecked(true);
-          return;
-        }
-
-        // If no cached data, check with Supabase
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data.session) {
-          localStorage.setItem('userData', JSON.stringify(data.session.user));
-          setUser(data.session.user);
-          setAuthChecked(true);
-        } else {
-          toast({
-            title: "Authentication required",
-            description: "Please sign in to create or edit projects",
-            variant: "destructive",
-          });
-          navigate('/auth');
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        toast({
-          title: "Authentication error",
-          description: "There was a problem checking your login status",
-          variant: "destructive",
-        });
-        navigate('/auth');
-      }
-    };
-
-    checkAuth();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
-
-  useEffect(() => {
-    if (isEditMode && authChecked && user) {
+    if (isEditMode && user) {
       fetchProject();
     }
-  }, [id, isEditMode, authChecked, user]);
+  }, [id, isEditMode, user]);
 
   const fetchProject = async () => {
     try {
@@ -126,17 +55,13 @@ const ProjectEdit = () => {
       
       // Make sure we have a user before proceeding
       if (!user) {
-        // Try to get cached user
-        const cachedUser = localStorage.getItem('userData');
-        if (!cachedUser) {
-          toast({
-            title: "Authentication required",
-            description: "Please sign in to create or edit projects",
-            variant: "destructive",
-          });
-          navigate('/auth');
-          return;
-        }
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create or edit projects",
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
       }
       
       // Ensure technologies is an array
@@ -221,7 +146,7 @@ const ProjectEdit = () => {
     }
   };
 
-  if (!authChecked || !user) {
+  if (authLoading) {
     return (
       <DashboardLayout>
         <div className="p-6">
@@ -229,6 +154,22 @@ const ProjectEdit = () => {
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Checking authentication...</h2>
               <p className="text-gray-500">Please wait while we verify your credentials</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Authentication required</h2>
+              <p className="text-gray-500 mb-4">Please sign in to create or edit projects</p>
+              <Button to="/auth" variant="primary">Sign In</Button>
             </div>
           </div>
         </div>
