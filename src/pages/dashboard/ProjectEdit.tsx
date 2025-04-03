@@ -17,31 +17,81 @@ const ProjectEdit = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  // Check if user is authenticated
+  // Set up authentication listener and check for existing session
   useEffect(() => {
+    // First set up the auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        if (session) {
+          setUser(session.user);
+          setAuthChecked(true);
+        } else {
+          setUser(null);
+          // Only redirect if not already on auth page
+          if (window.location.pathname !== '/auth') {
+            toast({
+              title: "Authentication required",
+              description: "Please sign in to create or edit projects",
+              variant: "destructive",
+            });
+            navigate('/auth');
+          }
+        }
+      }
+    );
+
+    // Then check for existing session
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
+      try {
+        console.log('Checking authentication...');
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error checking auth:', error);
+          throw error;
+        }
+        
+        console.log('Session data:', data);
+        
+        if (data.session) {
+          console.log('User is authenticated:', data.session.user.id);
+          setUser(data.session.user);
+          setAuthChecked(true);
+        } else {
+          console.log('No active session, redirecting to auth');
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to create or edit projects",
+            variant: "destructive",
+          });
+          navigate('/auth');
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
         toast({
-          title: "Authentication required",
-          description: "Please sign in to create or edit projects",
+          title: "Authentication error",
+          description: "There was a problem checking your login status",
           variant: "destructive",
         });
         navigate('/auth');
-      } else {
-        setAuthChecked(true);
       }
     };
 
     checkAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   useEffect(() => {
-    if (isEditMode && authChecked) {
+    if (isEditMode && authChecked && user) {
       fetchProject();
     }
-  }, [id, isEditMode, authChecked]);
+  }, [id, isEditMode, authChecked, user]);
 
   const fetchProject = async () => {
     try {
@@ -70,17 +120,21 @@ const ProjectEdit = () => {
     try {
       setLoading(true);
       
-      // Confirm user is authenticated before proceeding
+      // Get current session to double-check authentication
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
+        console.error('No active session when submitting form');
         toast({
           title: "Authentication required",
-          description: "Please sign in to create or edit projects",
+          description: "Your session has expired. Please sign in again.",
           variant: "destructive",
         });
         navigate('/auth');
         return;
       }
+      
+      console.log('Authenticated as:', session.user.id);
       
       // Ensure technologies is an array
       const technologies = Array.isArray(values.technologies) 
@@ -100,24 +154,34 @@ const ProjectEdit = () => {
         preview_image_url: values.preview_image_url || null,
         featured: values.featured || false,
         order_index: values.order_index || 0,
+        updated_at: new Date().toISOString(),
       };
       
-      let result;
+      // Add created_at for new projects
+      if (!isEditMode) {
+        projectData.created_at = new Date().toISOString();
+      }
       
       console.log('Saving project data:', projectData);
       
+      let result;
+      
       if (isEditMode) {
         // Update existing project
+        console.log('Updating project with ID:', id);
         result = await supabase
           .from('projects')
           .update(projectData)
           .eq('id', id);
       } else {
         // Insert new project
+        console.log('Creating new project');
         result = await supabase
           .from('projects')
           .insert([projectData]);
       }
+      
+      console.log('Supabase operation result:', result);
       
       if (result.error) {
         console.error('Supabase error:', result.error);
@@ -144,7 +208,7 @@ const ProjectEdit = () => {
     }
   };
 
-  if (!authChecked) {
+  if (!authChecked || !user) {
     return (
       <DashboardLayout>
         <div className="p-6">
