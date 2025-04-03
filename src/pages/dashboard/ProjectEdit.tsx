@@ -142,7 +142,7 @@ const ProjectEdit = () => {
         : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean);
       
       // Prepare data for insertion/update
-      const projectData: Record<string, any> = {
+      const projectData = {
         title: values.title,
         slug: values.slug,
         short_description: values.short_description,
@@ -178,7 +178,7 @@ const ProjectEdit = () => {
         console.log('Creating new project');
         result = await supabase
           .from('projects')
-          .insert([projectData]);
+          .insert(projectData);  // Fix: removed the array brackets
       }
       
       console.log('Supabase operation result:', result);
