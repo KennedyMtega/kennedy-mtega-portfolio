@@ -141,8 +141,24 @@ const ProjectEdit = () => {
         ? values.technologies 
         : values.technologies.split(',').map((tech: string) => tech.trim()).filter(Boolean);
       
-      // Prepare data for insertion/update
-      const projectData = {
+      // Prepare data for insertion/update using a typed interface
+      interface ProjectData {
+        title: string;
+        slug: string;
+        short_description: string;
+        full_description: string;
+        technologies: string[];
+        github_url: string | null;
+        project_url: string | null;
+        image_url: string | null;
+        preview_image_url: string | null;
+        featured: boolean;
+        order_index: number;
+        updated_at: string;
+        created_at?: string; // Optional property for new projects
+      }
+      
+      const projectData: ProjectData = {
         title: values.title,
         slug: values.slug,
         short_description: values.short_description,
@@ -178,7 +194,7 @@ const ProjectEdit = () => {
         console.log('Creating new project');
         result = await supabase
           .from('projects')
-          .insert(projectData);  // Fix: removed the array brackets
+          .insert(projectData);
       }
       
       console.log('Supabase operation result:', result);
