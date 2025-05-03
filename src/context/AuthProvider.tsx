@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Only redirect to auth if not already there and not a public route
         if (!location.pathname.startsWith('/auth') && 
-            !location.pathname === '/' && 
+            location.pathname !== '/' && 
             !location.pathname.startsWith('/projects') && 
             !location.pathname.startsWith('/blog') && 
             !location.pathname.startsWith('/contact')) {
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // If not on public pages, redirect to auth
             if (!location.pathname.includes('/auth') && 
-                !location.pathname === '/' && 
+                location.pathname !== '/' && 
                 !location.pathname.startsWith('/projects') && 
                 !location.pathname.startsWith('/blog') && 
                 !location.pathname.startsWith('/contact')) {
