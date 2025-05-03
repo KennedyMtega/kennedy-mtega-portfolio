@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,13 +52,14 @@ const Auth = () => {
           localStorage.setItem('userData', JSON.stringify(data.session.user));
           localStorage.setItem('sessionData', JSON.stringify(data.session));
           
-          // Force immediate navigation and exit function
+          // Immediately redirect and exit the function
           setCheckingAuth(false);
           navigate(getRedirectPath(), { replace: true });
           return;
         }
         
         console.log("No session found in Supabase");
+        
         // If no session, check localStorage as fallback
         const cachedUser = localStorage.getItem('userData');
         const cachedSession = localStorage.getItem('sessionData');
@@ -69,20 +69,19 @@ const Auth = () => {
           // Try to refresh the session first
           const { data: refreshData, error: refreshError } = await supabase.auth.getUser();
           
-          if (refreshError || !refreshData.user) {
-            console.log("Cached session invalid, clearing local storage");
-            localStorage.removeItem('userData');
-            localStorage.removeItem('sessionData');
-          } else {
+          if (!refreshError && refreshData.user) {
             console.log("Cached session validated, redirecting");
-            // Force immediate navigation and exit function
             setCheckingAuth(false);
             navigate(getRedirectPath(), { replace: true });
             return;
+          } else {
+            console.log("Cached session invalid, clearing local storage");
+            localStorage.removeItem('userData');
+            localStorage.removeItem('sessionData');
           }
         }
         
-        // Only set checkingAuth to false if we're not redirecting
+        // If we got here, we're not logged in
         setCheckingAuth(false);
       } catch (error) {
         console.error("Error checking session:", error);
@@ -90,7 +89,6 @@ const Auth = () => {
       }
     };
     
-    // Don't check if we're already navigating away
     checkSession();
   }, [navigate, location]);
 
@@ -104,12 +102,13 @@ const Auth = () => {
       // Check for hardcoded credentials first
       if (email === 'mtegakennedy@gmail.com' && password === 'Helphelp@2024') {
         console.log("Using hardcoded credentials");
+        
         // Store hardcoded user data in localStorage
         const userData = {
           email: 'mtegakennedy@gmail.com',
           name: 'Kennedy Mtega',
           role: 'admin',
-          id: '00000000-0000-0000-0000-000000000000' // Adding fake ID for compatibility
+          id: '00000000-0000-0000-0000-000000000000'
         };
         
         localStorage.setItem('userData', JSON.stringify(userData));
@@ -120,7 +119,7 @@ const Auth = () => {
         });
         
         // Force navigation and prevent further execution
-        navigate(getRedirectPath(), { replace: true });
+        navigate('/dashboard', { replace: true });
         return;
       }
       
@@ -143,8 +142,8 @@ const Auth = () => {
         description: "Welcome back to your dashboard.",
       });
       
-      // Force immediate navigation to dashboard with replace to prevent back navigation
-      navigate(getRedirectPath(), { replace: true });
+      // Force immediate navigation with replace: true
+      navigate('/dashboard', { replace: true });
       return; // Early return to prevent further execution
     } catch (error: any) {
       console.error("Login error:", error);
@@ -176,7 +175,7 @@ const Auth = () => {
               description: "Your account has been created and you are now logged in.",
             });
             
-            navigate(getRedirectPath(), { replace: true });
+            navigate('/dashboard', { replace: true });
             return; // Early return to prevent further execution
           }
         } catch (signupError: any) {

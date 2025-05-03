@@ -73,13 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(null);
         
         // Only redirect to auth if not already there and not a public route
-        if (location.pathname !== '/auth' && 
-            location.pathname !== '/' && 
-            !location.pathname.startsWith('/projects') && 
-            !location.pathname.startsWith('/blog') && 
-            !location.pathname.startsWith('/contact')) {
+        const isPublicRoute = 
+          location.pathname === '/auth' || 
+          location.pathname === '/' || 
+          location.pathname.startsWith('/projects') || 
+          location.pathname.startsWith('/blog') || 
+          location.pathname.startsWith('/contact');
+          
+        if (!isPublicRoute) {
           console.log("No session found during refresh, redirecting to auth");
-          navigate('/auth', { state: { returnTo: location.pathname } });
+          navigate('/auth', { state: { returnTo: location.pathname }, replace: true });
         }
         
         return null;
@@ -96,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log('Auth state changed:', event);
         
         if (!mounted) return;
@@ -107,6 +110,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(currentSession.user);
           localStorage.setItem('userData', JSON.stringify(currentSession.user));
           localStorage.setItem('sessionData', JSON.stringify(currentSession));
+
+          // If we're on the auth page, redirect to dashboard or returnTo
+          if (location.pathname === '/auth') {
+            const returnTo = location.state?.returnTo || '/dashboard';
+            navigate(returnTo, { replace: true });
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log("User signed out");
           localStorage.removeItem('userData');
@@ -115,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(null);
           
           // Only redirect if not already on auth page
-          if (!location.pathname.includes('/auth')) {
+          if (location.pathname !== '/auth') {
             navigate('/auth', { replace: true });
           }
         }
@@ -145,6 +154,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Store session and user data in localStorage
             localStorage.setItem('userData', JSON.stringify(data.session.user));
             localStorage.setItem('sessionData', JSON.stringify(data.session));
+            
+            // If we're on the auth page, redirect to dashboard or returnTo
+            if (location.pathname === '/auth') {
+              const returnTo = location.state?.returnTo || '/dashboard';
+              navigate(returnTo, { replace: true });
+            }
           }
         } else {
           console.log("No active session found");
@@ -158,6 +173,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(JSON.parse(cachedUser));
             setSession(JSON.parse(cachedSession));
             
+            // If we're on the auth page, redirect to dashboard
+            if (location.pathname === '/auth') {
+              const returnTo = location.state?.returnTo || '/dashboard';
+              navigate(returnTo, { replace: true });
+            }
+            
             // Try to refresh the session with Supabase after a short delay
             // to avoid any potential deadlocks
             setTimeout(() => {
@@ -169,13 +190,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(null);
             
             // If not on public pages, redirect to auth
-            if (!location.pathname.includes('/auth') && 
-                location.pathname !== '/' && 
-                !location.pathname.startsWith('/projects') && 
-                !location.pathname.startsWith('/blog') && 
-                !location.pathname.startsWith('/contact')) {
+            const isPublicRoute = 
+              location.pathname === '/auth' || 
+              location.pathname === '/' || 
+              location.pathname.startsWith('/projects') || 
+              location.pathname.startsWith('/blog') || 
+              location.pathname.startsWith('/contact');
+              
+            if (!isPublicRoute) {
               console.log("Redirecting to auth page");
-              navigate('/auth', { state: { returnTo: location.pathname } });
+              navigate('/auth', { state: { returnTo: location.pathname }, replace: true });
             }
           }
         }
