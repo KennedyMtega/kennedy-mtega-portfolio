@@ -53,6 +53,7 @@ const Auth = () => {
           localStorage.setItem('userData', JSON.stringify(data.session.user));
           localStorage.setItem('sessionData', JSON.stringify(data.session));
           navigate(getRedirectPath());
+          return; // Important: exit early after redirecting
         } else {
           console.log("No session found in Supabase");
           // If no session, check localStorage as fallback
@@ -71,6 +72,7 @@ const Auth = () => {
             } else {
               console.log("Cached session validated, redirecting");
               navigate(getRedirectPath());
+              return; // Important: exit early after redirecting
             }
           }
         }
@@ -109,6 +111,7 @@ const Auth = () => {
           description: "Welcome back to your dashboard.",
         });
         
+        // Force navigation and return to prevent further execution
         navigate(getRedirectPath());
         return;
       }
@@ -132,6 +135,7 @@ const Auth = () => {
         description: "Welcome back to your dashboard.",
       });
       
+      // Force immediate navigation to dashboard
       navigate(getRedirectPath());
     } catch (error: any) {
       console.error("Login error:", error);
