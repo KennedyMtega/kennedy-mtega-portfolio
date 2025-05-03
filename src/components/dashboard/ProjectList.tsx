@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Button from '@/components/ui/Button';
 import { Edit, Eye, Star, Trash, Plus } from 'lucide-react';
+import { useAuth } from '@/context/AuthProvider';
 
 interface ProjectListProps {
   onEdit: (project: Project) => void;
@@ -15,6 +16,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onEdit, onAddNew }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { session, refreshSession } = useAuth();
 
   useEffect(() => {
     fetchProjects();
@@ -23,6 +25,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ onEdit, onAddNew }) => {
   const fetchProjects = async () => {
     setLoading(true);
     try {
+      // Ensure we have a valid session
+      if (!session) {
+        await refreshSession();
+      }
+      
       const { data, error } = await supabase
         .from('projects')
         .select('*')

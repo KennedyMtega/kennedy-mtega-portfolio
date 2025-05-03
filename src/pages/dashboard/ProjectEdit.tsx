@@ -15,7 +15,7 @@ const ProjectEdit = () => {
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
   const { toast } = useToast();
-  const { user, session, isLoading: authLoading } = useAuth();
+  const { user, session, isLoading: authLoading, refreshSession } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +25,16 @@ const ProjectEdit = () => {
       fetchProject();
     }
   }, [id, isEditMode, user]);
+  
+  // Ensure we have a session before proceeding
+  useEffect(() => {
+    if (!authLoading && !session && !user) {
+      console.log("No authentication detected in ProjectEdit, redirecting to auth page");
+      navigate('/auth', { state: { returnTo: `/dashboard/projects/${isEditMode ? `edit/${id}` : 'new'}` } });
+    } else if (user) {
+      console.log("Authenticated user in ProjectEdit:", user.id);
+    }
+  }, [authLoading, session, user, navigate, id, isEditMode]);
 
   const fetchProject = async () => {
     try {
@@ -55,17 +65,23 @@ const ProjectEdit = () => {
       
       // Ensure we have a valid session
       if (!session) {
-        console.error("No active session found");
+        console.log("Attempting to refresh session before project submission");
+        await refreshSession();
+      }
+      
+      // Check again after refresh attempt
+      if (!session) {
+        console.error("No active session found for project submission");
         toast({
           title: "Authentication required",
           description: "Please sign in to create or edit projects",
           variant: "destructive",
         });
-        navigate('/auth');
+        navigate('/auth', { state: { returnTo: `/dashboard/projects/${isEditMode ? `edit/${id}` : 'new'}` } });
         return;
       }
       
-      console.log("Active session found:", session.user.id);
+      console.log("Active session found for project submission:", session.user.id);
       
       // Ensure technologies is an array
       const technologies = Array.isArray(values.technologies) 
@@ -166,7 +182,7 @@ const ProjectEdit = () => {
   }
 
   // If user is not authenticated, show auth required message
-  if (!user) {
+  if (!user || !session) {
     return (
       <DashboardLayout>
         <div className="p-6">
@@ -174,7 +190,13 @@ const ProjectEdit = () => {
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Authentication required</h2>
               <p className="text-gray-500 mb-4">Please sign in to create or edit projects</p>
-              <Button to="/auth" variant="primary">Sign In</Button>
+              <Button 
+                to="/auth" 
+                variant="primary"
+                href={`/auth?returnTo=${encodeURIComponent(
+                  `/dashboard/projects/${isEditMode ? `edit/${id}` : 'new'}`
+                )}`}
+              >Sign In</Button>
             </div>
           </div>
         </div>
