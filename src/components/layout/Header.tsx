@@ -4,13 +4,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
+import { useAuth } from '@/context/AuthProvider';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -19,29 +20,13 @@ const Header = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
-  // Check if user is logged in
-  useEffect(() => {
-    const checkAuth = () => {
-      const userData = localStorage.getItem('userData');
-      setIsLoggedIn(!!userData);
-    };
-    
-    checkAuth();
-    // Re-check on location change in case they logged out elsewhere
-    window.addEventListener('storage', checkAuth);
-    
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-    };
-  }, [location]);
-
   // Handle dashboard button click
   const handleDashboardClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isLoggedIn) {
+    if (user) {
       navigate('/dashboard');
     } else {
-      navigate('/auth');
+      navigate('/auth', { state: { returnTo: '/dashboard' } });
     }
   };
 
@@ -103,7 +88,7 @@ const Header = () => {
             iconPosition="left"
             size="sm"
           >
-            {isLoggedIn ? 'Dashboard' : 'Login'}
+            {isLoading ? 'Loading...' : user ? 'Dashboard' : 'Login'}
           </Button>
           <Button
             to="/contact"
@@ -145,11 +130,11 @@ const Header = () => {
             </Link>
           ))}
           <Link
-            to={isLoggedIn ? '/dashboard' : '/auth'}
+            to={user ? '/dashboard' : '/auth'}
             className="flex items-center text-xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
           >
             <User size={20} className="mr-2" />
-            {isLoggedIn ? 'Dashboard' : 'Login'}
+            {isLoading ? 'Loading...' : user ? 'Dashboard' : 'Login'}
           </Link>
           <Link
             to="/contact"

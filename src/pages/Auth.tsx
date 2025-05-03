@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Lock, ArrowRight, Loader } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -11,23 +11,67 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get redirect path from location state or query params
+  const getRedirectPath = () => {
+    // Check for state first (from React Router)
+    if (location.state?.returnTo) {
+      return location.state.returnTo;
+    }
+    
+    // Then check query params
+    const params = new URLSearchParams(location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      return returnTo;
+    }
+    
+    // Default to dashboard
+    return '/dashboard';
+  };
 
   // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
       try {
+        console.log("Checking authentication status");
+        
         // Check with Supabase first
-        const { data } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          setCheckingAuth(false);
+          return;
+        }
+        
         if (data.session) {
+          console.log("Session found, redirecting to:", getRedirectPath());
           // Store user data in localStorage
           localStorage.setItem('userData', JSON.stringify(data.session.user));
-          navigate('/dashboard');
+          localStorage.setItem('sessionData', JSON.stringify(data.session));
+          navigate(getRedirectPath());
         } else {
+          console.log("No session found in Supabase");
           // If no session, check localStorage as fallback
           const cachedUser = localStorage.getItem('userData');
-          if (cachedUser) {
-            navigate('/dashboard');
+          const cachedSession = localStorage.getItem('sessionData');
+          
+          if (cachedUser && cachedSession) {
+            console.log("Found cached user data, attempting to validate");
+            // Try to refresh the session first
+            const { data: refreshData, error: refreshError } = await supabase.auth.getUser();
+            
+            if (refreshError || !refreshData.user) {
+              console.log("Cached session invalid, clearing local storage");
+              localStorage.removeItem('userData');
+              localStorage.removeItem('sessionData');
+            } else {
+              console.log("Cached session validated, redirecting");
+              navigate(getRedirectPath());
+            }
           }
         }
       } catch (error) {
@@ -38,7 +82,7 @@ const Auth = () => {
     };
     
     checkSession();
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +93,7 @@ const Auth = () => {
       
       // Check for hardcoded credentials first
       if (email === 'mtegakennedy@gmail.com' && password === 'Helphelp@2024') {
+        console.log("Using hardcoded credentials");
         // Store hardcoded user data in localStorage
         const userData = {
           email: 'mtegakennedy@gmail.com',
@@ -64,7 +109,7 @@ const Auth = () => {
           description: "Welcome back to your dashboard.",
         });
         
-        navigate('/dashboard');
+        navigate(getRedirectPath());
         return;
       }
       
@@ -80,13 +125,14 @@ const Auth = () => {
       
       // Store user data in localStorage
       localStorage.setItem('userData', JSON.stringify(data.user));
+      localStorage.setItem('sessionData', JSON.stringify(data.session));
       
       toast({
         title: "Login successful",
         description: "Welcome back to your dashboard.",
       });
       
-      navigate('/dashboard');
+      navigate(getRedirectPath());
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -108,13 +154,14 @@ const Auth = () => {
           
           if (data.user) {
             localStorage.setItem('userData', JSON.stringify(data.user));
+            localStorage.setItem('sessionData', JSON.stringify(data.session));
             
             toast({
               title: "Account created",
               description: "Your account has been created and you are now logged in.",
             });
             
-            navigate('/dashboard');
+            navigate(getRedirectPath());
           }
         } catch (signupError: any) {
           console.error("Signup error:", signupError);

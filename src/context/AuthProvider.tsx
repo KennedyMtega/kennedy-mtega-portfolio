@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Function to refresh session data
   const refreshSession = async () => {
     try {
+      console.log("Refreshing session...");
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
@@ -41,32 +42,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.session) {
-        console.log("Session refreshed:", data.session.user.id);
+        console.log("Session refreshed successfully:", data.session.user.id);
         setSession(data.session);
         setUser(data.session.user);
         
         // Also store in localStorage for backup
         localStorage.setItem('userData', JSON.stringify(data.session.user));
         localStorage.setItem('sessionData', JSON.stringify(data.session));
+        return data.session;
       } else {
-        // If not on auth page, check if we need to redirect
-        if (!location.pathname.includes('/auth') && !localStorage.getItem('userData')) {
-          console.log("No session found during refresh, redirecting to auth");
-          navigate('/auth', { replace: true });
+        console.log("No session found during refresh");
+        
+        // Try to get data from localStorage
+        const cachedUser = localStorage.getItem('userData');
+        const cachedSession = localStorage.getItem('sessionData');
+        
+        if (cachedUser && cachedSession) {
+          console.log("Using cached session data");
+          const parsedUser = JSON.parse(cachedUser);
+          const parsedSession = JSON.parse(cachedSession);
+          
+          setUser(parsedUser);
+          setSession(parsedSession);
+          
+          return parsedSession;
         }
+        
+        // Clear state if no session found
+        setUser(null);
+        setSession(null);
+        
+        // Only redirect to auth if not already there and not a public route
+        if (!location.pathname.startsWith('/auth') && 
+            !location.pathname === '/' && 
+            !location.pathname.startsWith('/projects') && 
+            !location.pathname.startsWith('/blog') && 
+            !location.pathname.startsWith('/contact')) {
+          console.log("No session found during refresh, redirecting to auth");
+          navigate('/auth', { state: { returnTo: location.pathname } });
+        }
+        
+        return null;
       }
     } catch (err: any) {
       console.error('Session refresh error:', err);
+      return null;
     }
   };
 
   useEffect(() => {
     console.log("Setting up auth provider...");
+    let mounted = true;
     
     // Set up auth listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event);
+        
+        if (!mounted) return;
         
         if (currentSession) {
           console.log("Session updated from auth event");
@@ -92,62 +125,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Then check for existing session
     const checkAuth = async () => {
       try {
+        setIsLoading(true);
+        
         // First try to get session from supabase
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
+          console.error("Error getting session:", error);
           throw error;
         }
         
         if (data.session) {
           console.log("Found existing session:", data.session.user.id);
-          setSession(data.session);
-          setUser(data.session.user);
           
-          // Store session and user data in localStorage
-          localStorage.setItem('userData', JSON.stringify(data.session.user));
-          localStorage.setItem('sessionData', JSON.stringify(data.session));
+          if (mounted) {
+            setSession(data.session);
+            setUser(data.session.user);
+            
+            // Store session and user data in localStorage
+            localStorage.setItem('userData', JSON.stringify(data.session.user));
+            localStorage.setItem('sessionData', JSON.stringify(data.session));
+          }
         } else {
+          console.log("No active session found");
+          
           // If no session in supabase, check localStorage backup
           const cachedUser = localStorage.getItem('userData');
           const cachedSession = localStorage.getItem('sessionData');
           
-          if (cachedUser && cachedSession) {
+          if (cachedUser && cachedSession && mounted) {
             console.log("Using cached session data");
             setUser(JSON.parse(cachedUser));
             setSession(JSON.parse(cachedSession));
             
-            // Try to refresh the session with Supabase
-            refreshSession();
-          } else {
+            // Try to refresh the session with Supabase after a short delay
+            // to avoid any potential deadlocks
+            setTimeout(() => {
+              if (mounted) refreshSession();
+            }, 0);
+          } else if (mounted) {
             console.log("No user session found");
             setUser(null);
             setSession(null);
             
-            // If not on auth page, redirect to auth
-            if (!location.pathname.includes('/auth')) {
+            // If not on public pages, redirect to auth
+            if (!location.pathname.includes('/auth') && 
+                !location.pathname === '/' && 
+                !location.pathname.startsWith('/projects') && 
+                !location.pathname.startsWith('/blog') && 
+                !location.pathname.startsWith('/contact')) {
               console.log("Redirecting to auth page");
-              navigate('/auth', { replace: true });
+              navigate('/auth', { state: { returnTo: location.pathname } });
             }
           }
         }
       } catch (err: any) {
         console.error('Auth check error:', err);
-        toast({
-          title: "Authentication error",
-          description: err.message,
-          variant: "destructive",
-        });
-        setUser(null);
-        setSession(null);
+        
+        if (mounted) {
+          toast({
+            title: "Authentication error",
+            description: err.message,
+            variant: "destructive",
+          });
+          setUser(null);
+          setSession(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [toast, navigate, location.pathname]);
