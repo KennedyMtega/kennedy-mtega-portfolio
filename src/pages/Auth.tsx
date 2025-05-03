@@ -52,37 +52,45 @@ const Auth = () => {
           // Store user data in localStorage
           localStorage.setItem('userData', JSON.stringify(data.session.user));
           localStorage.setItem('sessionData', JSON.stringify(data.session));
-          navigate(getRedirectPath());
-          return; // Important: exit early after redirecting
-        } else {
-          console.log("No session found in Supabase");
-          // If no session, check localStorage as fallback
-          const cachedUser = localStorage.getItem('userData');
-          const cachedSession = localStorage.getItem('sessionData');
           
-          if (cachedUser && cachedSession) {
-            console.log("Found cached user data, attempting to validate");
-            // Try to refresh the session first
-            const { data: refreshData, error: refreshError } = await supabase.auth.getUser();
-            
-            if (refreshError || !refreshData.user) {
-              console.log("Cached session invalid, clearing local storage");
-              localStorage.removeItem('userData');
-              localStorage.removeItem('sessionData');
-            } else {
-              console.log("Cached session validated, redirecting");
-              navigate(getRedirectPath());
-              return; // Important: exit early after redirecting
-            }
+          // Force immediate navigation and exit function
+          setCheckingAuth(false);
+          navigate(getRedirectPath(), { replace: true });
+          return;
+        }
+        
+        console.log("No session found in Supabase");
+        // If no session, check localStorage as fallback
+        const cachedUser = localStorage.getItem('userData');
+        const cachedSession = localStorage.getItem('sessionData');
+        
+        if (cachedUser && cachedSession) {
+          console.log("Found cached user data, attempting to validate");
+          // Try to refresh the session first
+          const { data: refreshData, error: refreshError } = await supabase.auth.getUser();
+          
+          if (refreshError || !refreshData.user) {
+            console.log("Cached session invalid, clearing local storage");
+            localStorage.removeItem('userData');
+            localStorage.removeItem('sessionData');
+          } else {
+            console.log("Cached session validated, redirecting");
+            // Force immediate navigation and exit function
+            setCheckingAuth(false);
+            navigate(getRedirectPath(), { replace: true });
+            return;
           }
         }
+        
+        // Only set checkingAuth to false if we're not redirecting
+        setCheckingAuth(false);
       } catch (error) {
         console.error("Error checking session:", error);
-      } finally {
         setCheckingAuth(false);
       }
     };
     
+    // Don't check if we're already navigating away
     checkSession();
   }, [navigate, location]);
 
@@ -111,8 +119,8 @@ const Auth = () => {
           description: "Welcome back to your dashboard.",
         });
         
-        // Force navigation and return to prevent further execution
-        navigate(getRedirectPath());
+        // Force navigation and prevent further execution
+        navigate(getRedirectPath(), { replace: true });
         return;
       }
       
@@ -135,8 +143,9 @@ const Auth = () => {
         description: "Welcome back to your dashboard.",
       });
       
-      // Force immediate navigation to dashboard
-      navigate(getRedirectPath());
+      // Force immediate navigation to dashboard with replace to prevent back navigation
+      navigate(getRedirectPath(), { replace: true });
+      return; // Early return to prevent further execution
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -158,14 +167,17 @@ const Auth = () => {
           
           if (data.user) {
             localStorage.setItem('userData', JSON.stringify(data.user));
-            localStorage.setItem('sessionData', JSON.stringify(data.session));
+            if (data.session) {
+              localStorage.setItem('sessionData', JSON.stringify(data.session));
+            }
             
             toast({
               title: "Account created",
               description: "Your account has been created and you are now logged in.",
             });
             
-            navigate(getRedirectPath());
+            navigate(getRedirectPath(), { replace: true });
+            return; // Early return to prevent further execution
           }
         } catch (signupError: any) {
           console.error("Signup error:", signupError);

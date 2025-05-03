@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(null);
         
         // Only redirect to auth if not already there and not a public route
-        if (!location.pathname.startsWith('/auth') && 
+        if (location.pathname !== '/auth' && 
             location.pathname !== '/' && 
             !location.pathname.startsWith('/projects') && 
             !location.pathname.startsWith('/blog') && 
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("Setting up auth provider...");
     let mounted = true;
     
-    // Set up auth listener first
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event);
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           // Only redirect if not already on auth page
           if (!location.pathname.includes('/auth')) {
-            navigate('/auth');
+            navigate('/auth', { replace: true });
           }
         }
       }
@@ -216,7 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
       });
-      navigate('/auth');
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       toast({
         title: "Error signing out",
