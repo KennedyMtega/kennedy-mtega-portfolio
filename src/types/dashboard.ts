@@ -1,4 +1,3 @@
-
 // Define types for dashboard components and data
 
 // Settings types
@@ -42,6 +41,7 @@ export interface BlogPost {
   created_at: string;
   updated_at: string;
   published_at?: string;
+  subheading?: string;
 }
 
 // Donation types

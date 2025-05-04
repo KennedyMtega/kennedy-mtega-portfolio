@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import AnimatedSection from '../common/AnimatedSection';
@@ -136,11 +135,19 @@ const ProjectShowcase = () => {
                     <div className={`aspect-[16/9] relative rounded-xl overflow-hidden bg-gradient-to-br ${getGradientColor(index)} shadow-xl`}>
                       {/* Project visualization */}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        {project.preview_image_url ? (
-                          <img 
-                            src={project.preview_image_url} 
+                        {project.project_url ? (
+                          <img
+                            src={`https://api.microlink.io/?url=${encodeURIComponent(project.project_url)}&screenshot=true&meta=false&embed=screenshot.url`}
                             alt={project.title}
                             className="w-full h-full object-cover"
+                            style={{ borderRadius: 12 }}
+                          />
+                        ) : project.image_url ? (
+                          <img
+                            src={project.image_url}
+                            alt={project.title}
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: 12 }}
                           />
                         ) : (
                           <div className="w-24 h-24 md:w-32 md:h-32 relative">
@@ -189,15 +196,6 @@ const ProjectShowcase = () => {
             </div>
           </div>
         )}
-        
-        <div className="text-center mt-12">
-          <Button to="/projects" size="lg">
-            View All Projects
-          </Button>
-          <Button to="/dashboard/projects" className="ml-4" variant="outline" size="lg">
-            Manage Projects
-          </Button>
-        </div>
       </div>
     </section>
   );

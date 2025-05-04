@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -32,7 +31,6 @@ const projectSchema = z.object({
   github_url: z.string().optional(),
   project_url: z.string().optional(),
   image_url: z.string().optional(),
-  preview_image_url: z.string().optional(),
   featured: z.boolean().default(false),
   order_index: z.number().default(0),
 });
@@ -46,8 +44,6 @@ export interface ProjectFormProps {
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading }) => {
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(project?.preview_image_url || null);
   const { toast } = useToast();
   
   const defaultValues: Partial<ProjectFormValues> = {
@@ -59,7 +55,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
     github_url: project?.github_url || '',
     project_url: project?.project_url || '',
     image_url: project?.image_url || '',
-    preview_image_url: project?.preview_image_url || '',
     featured: project?.featured || false,
     order_index: project?.order_index || 0,
   };
@@ -68,58 +63,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
     resolver: zodResolver(projectSchema),
     defaultValues,
   });
-  
-  // Generate a preview image from the project URL
-  const generatePreview = () => {
-    const projectUrl = form.getValues('project_url');
-    
-    if (!projectUrl || !isValidUrl(projectUrl)) {
-      form.setError('project_url', { 
-        type: 'manual', 
-        message: 'Please enter a valid URL to generate a preview' 
-      });
-      return;
-    }
-    
-    setPreviewLoading(true);
-    
-    try {
-      const previewUrl = generatePreviewFromUrl(projectUrl);
-      setPreviewImageUrl(previewUrl);
-      form.setValue('preview_image_url', previewUrl);
-      
-      toast({
-        title: "Preview generated",
-        description: "Preview image has been generated successfully",
-      });
-    } catch (error) {
-      console.error("Error generating preview:", error);
-      toast({
-        title: "Error generating preview",
-        description: "Could not generate preview image. Please try again or enter URL manually.",
-        variant: "destructive",
-      });
-    } finally {
-      // Simulate loading since we can't directly check if the image is ready
-      setTimeout(() => {
-        setPreviewLoading(false);
-      }, 1500);
-    }
-  };
 
   // Handle the URL auto-slugification
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const title = event.target.value;
     const currentSlug = form.getValues('slug');
-    
-    // Only auto-generate slug if the user hasn't manually entered one
     if (!currentSlug || currentSlug === '') {
       const slug = title
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
-      
       form.setValue('slug', slug);
     }
   };
@@ -234,24 +188,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Live Project URL</FormLabel>
-                <div className="flex space-x-2">
-                  <FormControl>
-                    <Input placeholder="https://myproject.com" {...field} />
-                  </FormControl>
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    disabled={previewLoading}
-                    onClick={generatePreview}
-                    className="flex-shrink-0"
-                    icon={previewLoading ? <RefreshCw className="animate-spin h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                  >
-                    {previewLoading ? "Generating..." : "Generate Preview"}
-                  </Button>
-                </div>
-                <FormDescription>
-                  Enter your live project URL and click "Generate Preview" to automatically create a preview image.
-                </FormDescription>
+                <FormControl>
+                  <Input placeholder="https://myproject.com" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -268,33 +207,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, loading })
                 <FormControl>
                   <Input placeholder="https://example.com/image.jpg" {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="preview_image_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Preview Image URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://example.com/thumbnail.jpg" {...field} />
-                </FormControl>
-                {previewImageUrl && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-1">Preview:</p>
-                    <div className="border border-border rounded-md overflow-hidden h-24 w-full bg-gray-50">
-                      <img 
-                        src={previewImageUrl} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover"
-                        onError={() => setPreviewImageUrl(null)}
-                      />
-                    </div>
-                  </div>
-                )}
                 <FormMessage />
               </FormItem>
             )}

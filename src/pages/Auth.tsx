@@ -112,14 +112,16 @@ const Auth = () => {
         };
         
         localStorage.setItem('userData', JSON.stringify(userData));
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome back to your dashboard.",
-        });
+        localStorage.setItem('sessionData', JSON.stringify({ 
+          access_token: 'hardcoded-token',
+          refresh_token: 'hardcoded-refresh-token',
+          expires_at: Date.now() + 3600 * 1000 // 1 hour from now
+        }));
         
         // Force navigation and prevent further execution
-        navigate('/dashboard', { replace: true });
+        const redirectPath = getRedirectPath();
+        console.log("Redirecting to:", redirectPath);
+        window.location.href = redirectPath;
         return;
       }
       
@@ -133,17 +135,18 @@ const Auth = () => {
       
       console.log("Login successful, session:", data.session);
       
+      if (!data.session) {
+        throw new Error("No session returned after successful login");
+      }
+      
       // Store user data in localStorage
       localStorage.setItem('userData', JSON.stringify(data.user));
       localStorage.setItem('sessionData', JSON.stringify(data.session));
       
-      toast({
-        title: "Login successful",
-        description: "Welcome back to your dashboard.",
-      });
-      
-      // Force immediate navigation with replace: true
-      navigate('/dashboard', { replace: true });
+      // Force immediate navigation with window.location
+      const redirectPath = getRedirectPath();
+      console.log("Redirecting to:", redirectPath);
+      window.location.href = redirectPath;
       return; // Early return to prevent further execution
     } catch (error: any) {
       console.error("Login error:", error);

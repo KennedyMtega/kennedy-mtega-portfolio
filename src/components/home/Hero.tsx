@@ -1,10 +1,22 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 import AnimatedText from '../common/AnimatedText';
 
+const HERO_PHRASES = [
+  'Weaving the Future of Tanzania,',
+  'Empowering Communities with Code,',
+  'Innovating for Social Impact,',
+  'Building Digital Bridges,',
+  'Transforming Ideas into Solutions,',
+  'Championing Tech for Good,',
+];
+
 const Hero = () => {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [animated, setAnimated] = useState(true);
+  const scrollTargetRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const handleScroll = () => {
       const sections = document.querySelectorAll('.animate-on-scroll');
@@ -25,6 +37,23 @@ const Hero = () => {
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Rotating animated text
+  useEffect(() => {
+    if (!animated) return;
+    const timeout = setTimeout(() => {
+      setPhraseIndex((prev) => (prev + 1) % HERO_PHRASES.length);
+    }, HERO_PHRASES[phraseIndex].length * 40 + 1200);
+    return () => clearTimeout(timeout);
+  }, [phraseIndex, animated]);
+
+  // Scroll arrow click handler
+  const handleScrollArrowClick = () => {
+    const nextSection = document.getElementById('vision-section');
+    if (nextSection) {
+      nextSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
@@ -70,9 +99,11 @@ const Hero = () => {
             Kennedy Mtega:
             <br />
             <AnimatedText
-              text="Weaving the Future of Tanzania,"
+              text={HERO_PHRASES[phraseIndex]}
               className="text-primary"
               delay={50}
+              animated={animated}
+              onComplete={() => setAnimated(true)}
             />
             <br />
             <span>Thread by Thread.</span>
@@ -102,11 +133,16 @@ const Hero = () => {
         </div>
 
         <div className="mt-16 md:mt-24 text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-background/50 border border-border animate-bounce">
+          <button
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-background/50 border border-border animate-bounce focus:outline-none"
+            aria-label="Scroll to next section"
+            onClick={handleScrollArrowClick}
+            tabIndex={0}
+          >
             <svg width="15" height="8" viewBox="0 0 15 8" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1.5 1L7.5 7L13.5 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </div>
+          </button>
         </div>
       </div>
     </section>

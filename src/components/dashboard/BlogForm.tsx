@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Save, Plus, TrashIcon, Image } from 'lucide-react';
 import Button from '../ui/Button';
+import GeminiAIWriter from '../common/GeminiAIWriter';
+import { BlogPost } from '@/types/dashboard';
 
 interface BlogFormProps {
   postId?: string;
@@ -17,20 +18,27 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<BlogPost>({
+    id: '',
     title: '',
     slug: '',
     excerpt: '',
     content: '',
     author: '',
     category: '',
-    tags: [] as string[],
+    tags: [],
     image_url: '',
     published: false,
-    featured: false
+    featured: false,
+    created_at: '',
+    updated_at: '',
+    published_at: '',
+    subheading: '',
   });
   
   const [tag, setTag] = useState('');
+  const [aiPrompt, setAIPrompt] = useState('');
+  const [aiLoading, setAILoading] = useState(false);
 
   const categories = [
     'Technology',
@@ -63,17 +71,23 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
         if (error) throw error;
         
         if (data) {
+          const safeData = data as Partial<BlogPost>;
           setFormState({
-            title: data.title || '',
-            slug: data.slug || '',
-            excerpt: data.excerpt || '',
-            content: data.content || '',
-            author: data.author || '',
-            category: data.category || '',
-            tags: data.tags || [],
-            image_url: data.image_url || '',
-            published: data.published || false,
-            featured: data.featured || false
+            id: safeData.id || '',
+            title: safeData.title || '',
+            slug: safeData.slug || '',
+            excerpt: safeData.excerpt || '',
+            content: safeData.content || '',
+            author: safeData.author || '',
+            category: safeData.category || '',
+            tags: safeData.tags || [],
+            image_url: safeData.image_url || '',
+            published: safeData.published || false,
+            featured: safeData.featured || false,
+            created_at: safeData.created_at || '',
+            updated_at: safeData.updated_at || '',
+            published_at: safeData.published_at || '',
+            subheading: safeData.subheading || '',
           });
         }
       } catch (error: any) {
@@ -174,6 +188,16 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
     }
   };
 
+  const handleAIGenerate = (result: any) => {
+    setFormState(prev => ({
+      ...prev,
+      title: result.title || prev.title,
+      excerpt: result.excerpt || prev.excerpt,
+      content: result.body || prev.content,
+      subheading: result.subheading || prev.subheading,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -212,6 +236,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
           image_url: formState.image_url,
           featured: formState.featured,
           published: formState.published,
+          subheading: formState.subheading,
           updated_at: new Date().toISOString()
         };
         
@@ -236,7 +261,8 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
           tags: formState.tags,
           image_url: formState.image_url,
           featured: formState.featured,
-          published: formState.published
+          published: formState.published,
+          subheading: formState.subheading,
         };
         
         // Set published_at if the post is being published immediately
@@ -278,6 +304,28 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      {/* AI Writer Section */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Generate Full Blog Post with AI
+        </label>
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            value={aiPrompt}
+            onChange={e => setAIPrompt(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+            placeholder="Enter a topic or prompt for the AI (e.g. Digital Economy in Tanzania)"
+          />
+          <GeminiAIWriter
+            prompt={aiPrompt}
+            onGenerate={handleAIGenerate}
+            buttonText="Generate Full Blog with AI"
+            className="!bg-green-600 !hover:bg-green-700"
+          />
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">AI will generate a full blog post, SEO meta, and summary for you. All fields will be filled automatically.</p>
+      </div>
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -311,6 +359,21 @@ const BlogForm: React.FC<BlogFormProps> = ({ postId }) => {
               placeholder="blog-post-slug"
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="subheading" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Subheading
+          </label>
+          <input
+            id="subheading"
+            name="subheading"
+            type="text"
+            value={formState.subheading}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+            placeholder="Optional subheading for your blog post"
+          />
         </div>
 
         <div>

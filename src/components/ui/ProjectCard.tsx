@@ -15,10 +15,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, featured = false }) 
       <div className="relative">
         <Link to={`/projects/${project.slug}`} className="block">
           <div className="aspect-video overflow-hidden bg-gray-100 dark:bg-gray-700">
-            {project.preview_image_url ? (
-              <img 
-                src={project.preview_image_url} 
-                alt={project.title} 
+            {project.project_url ? (
+              <img
+                src={`https://api.microlink.io/?url=${encodeURIComponent(project.project_url)}&screenshot=true&meta=false&embed=screenshot.url`}
+                alt={project.title}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : project.image_url ? (
+              <img
+                src={project.image_url}
+                alt={project.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
