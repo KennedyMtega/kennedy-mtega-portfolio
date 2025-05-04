@@ -1,4 +1,4 @@
-
+/* Base styles and Tailwind CSS imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -6,7 +6,7 @@ export interface Settings {
   value: any; // Change from Record<string, any> to any to accommodate the Json type from Supabase
   updated_at: string;
 }
-
+//
 // Project types
 export interface Project {
   id: string;

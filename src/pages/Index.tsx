@@ -10,6 +10,7 @@ import BlogPreview from '../components/home/BlogPreview';
 import Contact from '../components/home/Contact';
 import { trackPageView } from '../utils/analytics';
 
+// Main landing page component with hero section and featured content
 const Index = () => {
   // On mount, scroll to top of page and track page view
   useEffect(() => {

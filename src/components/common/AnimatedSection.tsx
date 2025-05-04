@@ -1,4 +1,4 @@
-
+// Reusable animated section component with scroll effects
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 

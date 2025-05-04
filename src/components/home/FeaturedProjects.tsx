@@ -1,4 +1,4 @@
-
+// Component for displaying featured projects in a grid layout
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';

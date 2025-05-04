@@ -1,4 +1,4 @@
-
+// Blog post editor with markdown support and AI content generation
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';

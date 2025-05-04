@@ -12,6 +12,7 @@ const HERO_PHRASES = [
   'Championing Tech for Good,',
 ];
 
+// Hero section component with animated text and main call-to-action
 const Hero = () => {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [animated, setAnimated] = useState(true);

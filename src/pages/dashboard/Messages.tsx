@@ -1,4 +1,4 @@
-
+// Message inbox with filtering and reply functionality
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Check, Mail, Trash2, Archive, RefreshCw } from 'lucide-react';

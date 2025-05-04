@@ -1,4 +1,4 @@
-
+// Donation management and tracking interface
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';

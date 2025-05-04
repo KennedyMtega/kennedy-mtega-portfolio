@@ -13,6 +13,7 @@ interface BlogPost {
   category: string;
 }
 
+// Preview component for displaying latest blog posts
 const BlogPreview = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

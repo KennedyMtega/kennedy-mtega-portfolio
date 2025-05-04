@@ -1,3 +1,4 @@
+// AI content generation component using Gemini API
 import React, { useState } from 'react';
 
 interface GeminiAIWriterProps {

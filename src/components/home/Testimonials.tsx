@@ -1,4 +1,4 @@
-
+// Testimonials section with auto-rotating cards
 import React, { useState, useEffect } from 'react';
 import { Quote } from 'lucide-react';
 import AnimatedSection from '../common/AnimatedSection';

@@ -1,4 +1,4 @@
-
+// List component for displaying and managing projects
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/types/dashboard';
 import { supabase } from '@/integrations/supabase/client';

@@ -12,6 +12,7 @@ interface HotspotProps {
   image: string;
 }
 
+// Vision section component displaying mission and values
 const Vision = () => {
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
 

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
+// Individual blog post page with markdown content and social sharing
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();

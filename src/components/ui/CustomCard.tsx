@@ -1,4 +1,4 @@
-
+// Reusable card component with customizable content and styling
 import React from 'react';
 import { cn } from '@/lib/utils';
 

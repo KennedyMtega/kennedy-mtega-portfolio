@@ -11,7 +11,7 @@
  */
 export const generatePreviewFromUrl = (url: string): string => {
   if (!url) return '';
-  
+  //
   // Remove http/https protocol for compatibility with some services
   const cleanUrl = url.replace(/^https?:\/\//, '');
   

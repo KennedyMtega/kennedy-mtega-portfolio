@@ -1,4 +1,4 @@
-
+// Text animation component with typing effect
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 

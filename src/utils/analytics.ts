@@ -5,7 +5,7 @@ export const trackPageView = async (pagePath: string) => {
   try {
     // Get referrer if available
     const referrer = document.referrer || null;
-    
+    //
     // Get user agent
     const userAgent = navigator.userAgent || null;
     

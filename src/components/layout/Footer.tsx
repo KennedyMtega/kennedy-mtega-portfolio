@@ -5,7 +5,7 @@ import { Twitter, Linkedin, Instagram, Mail, ArrowUpRight, User } from 'lucide-r
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+//
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">

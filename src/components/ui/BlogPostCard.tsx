@@ -1,4 +1,4 @@
-
+// Card component for displaying blog post previews with image and metadata
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BlogPost } from '@/types/dashboard';

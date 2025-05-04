@@ -15,7 +15,7 @@ export type ChartConfig = {
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
   )
 }
-
+//
 type ChartContextProps = {
   config: ChartConfig
 }

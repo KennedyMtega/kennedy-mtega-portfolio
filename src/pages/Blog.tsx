@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import { Calendar, Tag, User } from 'lucide-react';
 import { format } from 'date-fns';
 
+// Blog listing page with article previews and category filtering
 const Blog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);

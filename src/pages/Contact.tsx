@@ -1,4 +1,4 @@
-
+// Contact page with form submission and social media links
 import React, { useEffect } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';

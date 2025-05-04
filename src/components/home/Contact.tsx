@@ -12,7 +12,7 @@ const Contact = () => {
         <div className="blur-circle w-[600px] h-[600px] bg-blue-400/10 left-[-300px] bottom-[-200px]"></div>
         <div className="blur-circle w-[500px] h-[500px] bg-purple-400/10 right-[-200px] top-[-100px]"></div>
       </div>
-
+//
       <div className="container px-4 md:px-6 relative z-10">
         <AnimatedSection animation="slide-up" className="text-center mb-16">
           <span className="inline-block py-1 px-3 mb-4 bg-primary/10 text-primary text-sm font-medium rounded-full">

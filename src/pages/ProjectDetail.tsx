@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import { ArrowLeft, Calendar, Code, ExternalLink, Github } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
+// Detailed project view with full description, images, and related content
 const ProjectDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();

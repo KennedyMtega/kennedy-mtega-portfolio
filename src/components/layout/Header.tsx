@@ -5,7 +5,7 @@ import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
 import { useAuth } from '@/context/AuthProvider';
-
+//
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

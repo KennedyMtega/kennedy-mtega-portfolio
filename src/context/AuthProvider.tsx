@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log("Refreshing session...");
       const { data, error } = await supabase.auth.getSession();
-      
+      //
       if (error) {
         throw error;
       }

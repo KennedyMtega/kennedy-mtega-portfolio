@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import { ExternalLink, Github, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+// Projects listing page with filtering and search functionality
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

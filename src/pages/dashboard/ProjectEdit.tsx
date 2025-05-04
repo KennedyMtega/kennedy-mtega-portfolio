@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthProvider';
 
+// Project creation and editing form with image upload
 const ProjectEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();

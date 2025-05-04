@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import { Project } from '@/types/dashboard';
 import { supabase } from '@/integrations/supabase/client';
 
+// Showcase component for displaying featured projects with animations
 const ProjectShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Project } from '@/types/dashboard';
 import { ExternalLink, Github, Code } from 'lucide-react';
 
+// Card component for displaying project information with hover effects
 interface ProjectCardProps {
   project: Project;
   featured?: boolean;
