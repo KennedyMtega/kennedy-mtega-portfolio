@@ -1,17 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
-import { useAuth } from '@/context/AuthProvider';
-//
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -19,16 +15,6 @@ const Header = () => {
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
-
-  // Handle dashboard button click
-  const handleDashboardClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (user) {
-      navigate('/dashboard');
-    } else {
-      navigate('/auth', { state: { returnTo: '/dashboard' } });
-    }
-  };
 
   // Handle scroll effect for the header
   useEffect(() => {
@@ -82,15 +68,6 @@ const Header = () => {
             </Link>
           ))}
           <Button
-            onClick={handleDashboardClick}
-            variant="secondary"
-            icon={<User size={16} />}
-            iconPosition="left"
-            size="sm"
-          >
-            {isLoading ? 'Loading...' : user ? 'Dashboard' : 'Login'}
-          </Button>
-          <Button
             to="/contact"
             variant="primary"
             size="sm"
@@ -129,13 +106,6 @@ const Header = () => {
               {item.name}
             </Link>
           ))}
-          <Link
-            to={user ? '/dashboard' : '/auth'}
-            className="flex items-center text-xl font-medium text-foreground/80 hover:text-primary transition-all duration-200"
-          >
-            <User size={20} className="mr-2" />
-            {isLoading ? 'Loading...' : user ? 'Dashboard' : 'Login'}
-          </Link>
           <Link
             to="/contact"
             className="mt-6 py-3 w-full text-center rounded-full bg-primary text-white font-medium transition-all duration-200"

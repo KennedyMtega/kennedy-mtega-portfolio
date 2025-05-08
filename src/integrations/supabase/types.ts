@@ -62,35 +62,35 @@ export type Database = {
       }
       contact_messages: {
         Row: {
-          archived: boolean | null
+          is_archived: boolean | null
           created_at: string | null
           email: string
           id: string
           message: string
           name: string
-          read: boolean | null
+          is_read: boolean | null
           subject: string
           updated_at: string | null
         }
         Insert: {
-          archived?: boolean | null
+          is_archived?: boolean | null
           created_at?: string | null
           email: string
           id?: string
           message: string
           name: string
-          read?: boolean | null
+          is_read?: boolean | null
           subject: string
           updated_at?: string | null
         }
         Update: {
-          archived?: boolean | null
+          is_archived?: boolean | null
           created_at?: string | null
           email?: string
           id?: string
           message?: string
           name?: string
-          read?: boolean | null
+          is_read?: boolean | null
           subject?: string
           updated_at?: string | null
         }

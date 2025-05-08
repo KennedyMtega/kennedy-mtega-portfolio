@@ -30,10 +30,10 @@ const DashboardHome = () => {
           .select('*', { count: 'exact', head: true });
 
         // Fetch unread messages count
-        const { count: messagesCount, error: messagesError } = await supabase
+        const { data: unreadMessages, error: unreadError } = await supabase
           .from('contact_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('read', false);
+          .select('id')
+          .eq('is_read', false);
 
         // Fetch settings
         const { data: settingsData, error: settingsError } = await supabase
@@ -43,13 +43,13 @@ const DashboardHome = () => {
 
         if (projectsError) throw projectsError;
         if (postsError) throw postsError;
-        if (messagesError) throw messagesError;
+        if (unreadError) throw unreadError;
         if (settingsError) throw settingsError;
 
         setStats({
           projects: projectsCount || 0,
           posts: postsCount || 0,
-          messages: messagesCount || 0,
+          messages: unreadMessages.length || 0,
           settings: settingsData as SettingsType
         });
       } catch (error) {

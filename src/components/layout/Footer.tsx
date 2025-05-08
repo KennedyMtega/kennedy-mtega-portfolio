@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Linkedin, Instagram, Mail, ArrowUpRight, User } from 'lucide-react';
+import { Twitter, Linkedin, Instagram, Mail, ArrowUpRight } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-//
+
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
@@ -83,16 +82,10 @@ const Footer = () => {
                   Contact
                 </Link>
               </li>
-              <li>
-                <Link to="/dashboard" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
-                  <User size={14} className="mr-1" />
-                  Dashboard
-                </Link>
-              </li>
             </ul>
           </div>
 
-          {/* Projects - This will now display real projects */}
+          {/* Projects */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground/70">
               Projects
@@ -101,11 +94,6 @@ const Footer = () => {
               <li>
                 <Link to="/projects" className="text-muted-foreground hover:text-primary transition-colors">
                   All Projects
-                </Link>
-              </li>
-              <li>
-                <Link to="/dashboard/projects" className="text-muted-foreground hover:text-primary transition-colors">
-                  Manage Projects
                 </Link>
               </li>
             </ul>

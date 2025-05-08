@@ -64,8 +64,8 @@ export interface ContactMessage {
   email: string;
   subject: string;
   message: string;
-  read: boolean;
-  archived: boolean;
+  is_read: boolean;
+  is_archived: boolean;
   created_at: string;
   updated_at: string;
 }

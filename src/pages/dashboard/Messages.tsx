@@ -31,9 +31,9 @@ const DashboardMessages = () => {
       let query = supabase.from('contact_messages').select('*');
       
       if (activeTab === 'unread') {
-        query = query.eq('read', false).eq('archived', false);
+        query = query.eq('is_read', false).eq('is_archived', false);
       } else if (activeTab === 'archived') {
-        query = query.eq('archived', true);
+        query = query.eq('is_archived', true);
       }
       
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -45,15 +45,15 @@ const DashboardMessages = () => {
       // Get stats for all messages
       const { data: allData, error: statsError } = await supabase
         .from('contact_messages')
-        .select('id, read, archived');
+        .select('id, is_read, is_archived');
         
       if (statsError) throw statsError;
       
       if (allData) {
         const stats = {
           total: allData.length,
-          unread: allData.filter(m => !m.read && !m.archived).length,
-          archived: allData.filter(m => m.archived).length
+          unread: allData.filter(m => !m.is_read && !m.is_archived).length,
+          archived: allData.filter(m => m.is_archived).length
         };
         setStats(stats);
       }
@@ -69,14 +69,14 @@ const DashboardMessages = () => {
     try {
       const { error } = await supabase
         .from('contact_messages')
-        .update({ read: true, updated_at: new Date().toISOString() })
+        .update({ is_read: true, updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
       
       // Update the messages state
       setMessages(messages.map(message => 
-        message.id === id ? { ...message, read: true } : message
+        message.id === id ? { ...message, is_read: true } : message
       ));
       
       // Update stats
@@ -104,7 +104,7 @@ const DashboardMessages = () => {
       const { error } = await supabase
         .from('contact_messages')
         .update({ 
-          archived: !currentArchived,
+          is_archived: !currentArchived,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
@@ -118,7 +118,7 @@ const DashboardMessages = () => {
           // We're viewing archived and trying to archive a message, so add it
           const message = messages.find(m => m.id === id);
           if (message) {
-            setMessages([...messages, {...message, archived: true}]);
+            setMessages([...messages, {...message, is_archived: true}]);
           }
         } else if (activeTab === 'archived' && currentArchived) {
           // We're viewing archived and trying to unarchive, so remove it
@@ -126,7 +126,7 @@ const DashboardMessages = () => {
         } else {
           // We're in another view and changing archive status
           setMessages(messages.map(message => 
-            message.id === id ? { ...message, archived: !currentArchived } : message
+            message.id === id ? { ...message, is_archived: !currentArchived } : message
           ));
         }
       } else {
@@ -173,8 +173,8 @@ const DashboardMessages = () => {
         const message = messages.find(m => m.id === id);
         return {
           total: prev.total - 1,
-          unread: message && !message.read ? prev.unread - 1 : prev.unread,
-          archived: message && message.archived ? prev.archived - 1 : prev.archived
+          unread: message && !message.is_read ? prev.unread - 1 : prev.unread,
+          archived: message && message.is_archived ? prev.archived - 1 : prev.archived
         };
       });
       
@@ -242,27 +242,16 @@ const DashboardMessages = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400">
-            <p>{error}</p>
-            <Button 
-              onClick={fetchMessages} 
-              variant="outline" 
-              className="mt-2"
-            >
-              Try Again
-            </Button>
+          <div className="text-center text-red-500">
+            {error}
           </div>
         ) : messages.length === 0 ? (
-          <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-lg text-center">
-            <p className="text-gray-500 dark:text-gray-400">
-              {activeTab === 'all' ? 'No messages found' : 
-                activeTab === 'unread' ? 'No unread messages' : 
-                'No archived messages'}
-            </p>
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            No messages found
           </div>
         ) : (
           <div className="space-y-6">
@@ -270,7 +259,7 @@ const DashboardMessages = () => {
               <div 
                 key={message.id} 
                 className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border 
-                  ${!message.read && !message.archived ? 'border-primary' : 'border-border'}`}
+                  ${!message.is_read && !message.is_archived ? 'border-primary' : 'border-border'}`}
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
@@ -283,12 +272,12 @@ const DashboardMessages = () => {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {!message.read && !message.archived && (
+                      {!message.is_read && !message.is_archived && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
                           New
                         </span>
                       )}
-                      {message.archived && (
+                      {message.is_archived && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                           Archived
                         </span>
@@ -310,7 +299,7 @@ const DashboardMessages = () => {
                     >
                       Reply
                     </Button>
-                    {!message.read && !message.archived && (
+                    {!message.is_read && !message.is_archived && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -324,9 +313,9 @@ const DashboardMessages = () => {
                       variant="outline"
                       size="sm"
                       icon={<Archive size={14} />}
-                      onClick={() => toggleArchive(message.id, message.archived)}
+                      onClick={() => toggleArchive(message.id, message.is_archived)}
                     >
-                      {message.archived ? 'Unarchive' : 'Archive'}
+                      {message.is_archived ? 'Unarchive' : 'Archive'}
                     </Button>
                     <Button
                       variant="destructive"
