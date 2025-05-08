@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -9,12 +8,13 @@ const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     subject: '',
     message: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-//
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -23,38 +23,49 @@ const ContactForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
       // Validate form data
-      if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
         throw new Error("All fields are required");
       }
-      
+
       // Insert message into Supabase
       const { error } = await supabase
         .from('contact_messages')
         .insert({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone,
           subject: formData.subject,
           message: formData.message,
-          read: false,
-          archived: false,
+          is_read: false,
+          is_archived: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-        
       if (error) throw error;
-      
+
+      // Send to Make.com webhook
+      try {
+        await fetch('https://hook.eu2.make.com/xqs97kr38xcxggcu77yzevrk2yb1op2e', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } catch (webhookError) {
+        // Optionally log or show a warning, but don't block the user
+        console.warn('Webhook error:', webhookError);
+      }
+
       toast({
         title: "Message sent successfully",
         description: "Thank you for your message. I'll get back to you soon."
       });
-      
       // Reset form after successful submission
       setFormData({
         name: '',
         email: '',
+        phone: '',
         subject: '',
         message: ''
       });
@@ -78,7 +89,6 @@ const ContactForm = () => {
           I'd love to hear from you! Fill out the form below and I'll get back to you as soon as possible.
         </p>
       </div>
-      
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -110,7 +120,20 @@ const ContactForm = () => {
             />
           </div>
         </div>
-        
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Phone Number*
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            value={formData.phone}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
         <div>
           <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Subject*
@@ -125,7 +148,6 @@ const ContactForm = () => {
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white"
           />
         </div>
-        
         <div>
           <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Message*
@@ -140,7 +162,6 @@ const ContactForm = () => {
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white"
           />
         </div>
-        
         <div>
           <Button
             type="submit"

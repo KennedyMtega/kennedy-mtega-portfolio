@@ -38,7 +38,7 @@ const Contact = () => {
                 href="mailto:info@kennedymtega.com" 
                 className="text-primary hover:underline"
               >
-                info@kennedymtega.com
+                mtegakennedy@gmail.com
               </a>
             </div>
             
@@ -49,10 +49,10 @@ const Contact = () => {
               <h3 className="text-lg font-semibold mb-2">Phone</h3>
               <p className="text-foreground/70 mb-4">Available during business hours for urgent matters</p>
               <a 
-                href="tel:+255712345678" 
+                href="tel:+255764738005" 
                 className="text-primary hover:underline"
               >
-                +255 71 234 5678
+                +255 764 738 005
               </a>
             </div>
             
