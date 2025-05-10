@@ -1,3 +1,4 @@
+
 // Card component for displaying blog post previews with image and metadata
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -31,6 +32,12 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
                 src={post.image_url} 
                 alt={post.title} 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = '/placeholder.svg';
+                  console.log('Error loading image:', post.image_url);
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">

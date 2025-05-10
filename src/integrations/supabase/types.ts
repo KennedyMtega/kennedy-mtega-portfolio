@@ -5,10 +5,57 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
-//
+
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author: string
@@ -22,6 +69,7 @@ export type Database = {
           published: boolean | null
           published_at: string | null
           slug: string
+          subheading: string | null
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -38,6 +86,7 @@ export type Database = {
           published?: boolean | null
           published_at?: string | null
           slug: string
+          subheading?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -54,6 +103,7 @@ export type Database = {
           published?: boolean | null
           published_at?: string | null
           slug?: string
+          subheading?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null
@@ -62,35 +112,35 @@ export type Database = {
       }
       contact_messages: {
         Row: {
-          is_archived: boolean | null
           created_at: string | null
           email: string
           id: string
+          is_archived: boolean | null
+          is_read: boolean | null
           message: string
           name: string
-          is_read: boolean | null
           subject: string
           updated_at: string | null
         }
         Insert: {
-          is_archived?: boolean | null
           created_at?: string | null
           email: string
           id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
           message: string
           name: string
-          is_read?: boolean | null
           subject: string
           updated_at?: string | null
         }
         Update: {
-          is_archived?: boolean | null
           created_at?: string | null
           email?: string
           id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
           message?: string
           name?: string
-          is_read?: boolean | null
           subject?: string
           updated_at?: string | null
         }
@@ -264,12 +314,69 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login: string | null
+          role: string
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          last_login?: string | null
+          role?: string
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          last_login?: string | null
+          role?: string
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      hash_password: {
+        Args: { password: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      verify_password: {
+        Args: { password: string; hashed_password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

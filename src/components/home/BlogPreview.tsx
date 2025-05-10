@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import AnimatedSection from '../common/AnimatedSection';
@@ -93,7 +94,17 @@ const BlogPreview = () => {
               <div className="md:col-span-2">
                 <div className="aspect-[4/3] relative rounded-xl overflow-hidden shadow-lg">
                   {featuredPost?.image_url ? (
-                    <img src={featuredPost.image_url} alt={featuredPost.title} className="absolute inset-0 w-full h-full object-cover" />
+                    <img 
+                      src={featuredPost.image_url} 
+                      alt={featuredPost.title} 
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = '/placeholder.svg';
+                        console.log('Error loading featured image:', featuredPost.image_url);
+                      }}
+                    />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20"></div>
                   )}
@@ -133,7 +144,17 @@ const BlogPreview = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
                   <div className="aspect-[16/9] relative">
                     {post.image_url ? (
-                      <img src={post.image_url} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
+                      <img 
+                        src={post.image_url} 
+                        alt={post.title} 
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/placeholder.svg';
+                          console.log('Error loading recent post image:', post.image_url);
+                        }}
+                      />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
                     )}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -136,6 +137,12 @@ const BlogPost = () => {
                         src={post.image_url} 
                         alt={post.title} 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/placeholder.svg';
+                          console.log('Error loading blog post detail image:', post.image_url);
+                        }}
                       />
                     </div>
                   )}
@@ -196,6 +203,12 @@ const BlogPost = () => {
                                 src={relatedPost.image_url} 
                                 alt={relatedPost.title} 
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.onerror = null;
+                                  target.src = '/placeholder.svg';
+                                  console.log('Error loading related post image:', relatedPost.image_url);
+                                }}
                               />
                             </div>
                           )}
