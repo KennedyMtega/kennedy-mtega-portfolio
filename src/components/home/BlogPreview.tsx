@@ -18,13 +18,16 @@ const BlogPreview = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log("Fetching blog posts for preview section");
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('published', true)
           .order('published_at', { ascending: false })
           .limit(3);
+        
         if (error) throw error;
+        console.log("Blog posts fetched successfully:", data?.length);
         setPosts(data || []);
       } catch (err: any) {
         setError(err.message || 'Failed to load blog posts');

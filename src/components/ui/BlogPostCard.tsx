@@ -13,19 +13,24 @@ interface BlogPostCardProps {
 const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) => {
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
+    }
   };
 
   const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
 
   return (
     <div className={`group bg-white dark:bg-gray-800 border border-border rounded-xl overflow-hidden shadow-sm 
-      transition-all duration-300 hover:shadow-md ${featured ? 'md:col-span-2' : ''}`}>
+      transition-all duration-300 hover:shadow-md h-full flex flex-col ${featured ? 'md:col-span-2' : ''}`}>
       <div className="relative">
         <Link to={`/blog/${post.slug}`} className="block">
           <div className="aspect-video overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -38,17 +43,15 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
                   target.src = fallbackImageUrl;
-                  console.log('Using fallback image for:', post.title);
+                  console.log('Using fallback image for:', post.title, 'URL was:', post.image_url);
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <img 
-                  src={fallbackImageUrl} 
-                  alt="Placeholder" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <img 
+                src={fallbackImageUrl} 
+                alt="Placeholder" 
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
         </Link>
@@ -61,7 +64,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
         )}
       </div>
       
-      <div className="p-5">
+      <div className="p-5 flex-grow flex flex-col">
         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
           <div className="flex items-center mr-4">
             <Calendar size={14} className="mr-1" />
@@ -75,17 +78,17 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
           </div>
         </div>
         
-        <Link to={`/blog/${post.slug}`} className="block">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 hover:text-primary dark:hover:text-primary transition-colors">
+        <Link to={`/blog/${post.slug}`} className="block mb-2">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary transition-colors">
             {post.title}
           </h3>
         </Link>
         
-        <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+        <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 flex-grow">
           {post.excerpt}
         </p>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center">
             <User size={16} className="text-gray-400 mr-2" />
             <span className="text-sm text-gray-600 dark:text-gray-400">{post.author}</span>

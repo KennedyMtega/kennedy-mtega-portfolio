@@ -14,6 +14,7 @@ const Blog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
 
   // On mount, scroll to top of page and fetch blog posts
   useEffect(() => {
@@ -37,6 +38,17 @@ const Blog = () => {
       setError(err.message || 'Failed to load blog posts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Format date function
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
     }
   };
 
@@ -100,27 +112,33 @@ const Blog = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {posts.map((post) => (
-                  <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-border">
-                    {post.image_url && (
-                      <div className="aspect-video">
+                  <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-border h-full flex flex-col">
+                    <div className="aspect-video overflow-hidden bg-gray-100 dark:bg-gray-700">
+                      {post.image_url ? (
                         <img 
                           src={post.image_url} 
                           alt={post.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.onerror = null;
-                            target.src = '/placeholder.svg';
-                            console.log('Error loading blog list image:', post.image_url);
+                            target.src = fallbackImageUrl;
+                            console.log('Error loading blog list image for:', post.title, 'URL was:', post.image_url);
                           }}
                         />
-                      </div>
-                    )}
-                    <div className="p-6">
+                      ) : (
+                        <img 
+                          src={fallbackImageUrl} 
+                          alt="Placeholder" 
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="p-6 flex-grow flex flex-col">
                       <div className="flex items-center text-sm text-foreground/60 mb-3">
                         <span className="flex items-center">
                           <Calendar size={14} className="mr-1" />
-                          {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Unpublished'}
+                          {post.published_at ? formatDate(post.published_at) : formatDate(post.created_at)}
                         </span>
                         <span className="mx-2">•</span>
                         <span className="flex items-center">
@@ -133,13 +151,13 @@ const Blog = () => {
                           {post.title}
                         </a>
                       </h3>
-                      <p className="text-foreground/70 mb-4">
+                      <p className="text-foreground/70 mb-4 flex-grow">
                         {post.excerpt}
                       </p>
                       {post.tags && post.tags.length > 0 && (
                         <div className="mb-4">
                           <div className="flex flex-wrap gap-2">
-                            {post.tags.map((tag, index) => (
+                            {post.tags.slice(0, 3).map((tag, index) => (
                               <span 
                                 key={index}
                                 className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium"
@@ -150,7 +168,7 @@ const Blog = () => {
                           </div>
                         </div>
                       )}
-                      <div className="flex items-center">
+                      <div className="flex items-center mt-auto">
                         <span className="flex items-center text-sm text-foreground/60">
                           <Tag size={14} className="mr-1" />
                           {post.category}

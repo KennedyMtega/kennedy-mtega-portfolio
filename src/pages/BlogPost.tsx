@@ -17,6 +17,7 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
+  const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -30,13 +31,14 @@ const BlogPost = () => {
   const fetchBlogPost = async () => {
     try {
       setLoading(true);
+      console.log("Fetching blog post with slug:", slug);
       
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('slug', slug)
         .eq('published', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -44,6 +46,7 @@ const BlogPost = () => {
         throw new Error('Blog post not found');
       }
       
+      console.log("Blog post fetched successfully:", data.title);
       setPost(data);
       
       // Fetch related posts from the same category
@@ -58,6 +61,7 @@ const BlogPost = () => {
           .limit(3);
           
         if (!relatedError && relatedData) {
+          console.log("Related posts fetched:", relatedData.length);
           setRelatedPosts(relatedData);
         }
       }
@@ -72,12 +76,18 @@ const BlogPost = () => {
 
   // Format date
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
+    }
   };
 
   return (
@@ -140,8 +150,8 @@ const BlogPost = () => {
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null;
-                          target.src = '/placeholder.svg';
-                          console.log('Error loading blog post detail image:', post.image_url);
+                          target.src = fallbackImageUrl;
+                          console.log('Error loading blog post detail image:', post.title, 'URL was:', post.image_url);
                         }}
                       />
                     </div>
@@ -169,9 +179,9 @@ const BlogPost = () => {
                     
                     {post.tags && post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-6">
-                        {post.tags.map((tag: string) => (
+                        {post.tags.map((tag: string, index: number) => (
                           <span 
-                            key={tag}
+                            key={index}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
                           >
                             {tag}
@@ -181,7 +191,6 @@ const BlogPost = () => {
                     )}
                     
                     <div className="prose dark:prose-invert max-w-none">
-                      {/* In a real app, you might want to use a markdown parser here */}
                       <p className="text-lg mb-6">{post.excerpt}</p>
                       <div className="whitespace-pre-line">{post.content}</div>
                     </div>
@@ -206,8 +215,8 @@ const BlogPost = () => {
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
                                   target.onerror = null;
-                                  target.src = '/placeholder.svg';
-                                  console.log('Error loading related post image:', relatedPost.image_url);
+                                  target.src = fallbackImageUrl;
+                                  console.log('Error loading related post image:', relatedPost.title, 'URL was:', relatedPost.image_url);
                                 }}
                               />
                             </div>
