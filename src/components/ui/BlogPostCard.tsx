@@ -27,6 +27,11 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
   };
 
   const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
+  
+  React.useEffect(() => {
+    // Log image URL when component mounts to debug
+    console.log(`BlogPostCard: Rendering post "${post.title}" (${post.id}) with image URL:`, post.image_url);
+  }, [post]);
 
   return (
     <div className={`group bg-white dark:bg-gray-800 border border-border rounded-xl overflow-hidden shadow-sm 
@@ -42,8 +47,11 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
+                  console.log(`BlogPostCard: Error loading image for "${post.title}" (${post.id}). URL was:`, post.image_url);
                   target.src = fallbackImageUrl;
-                  console.log('Using fallback image for:', post.title, 'URL was:', post.image_url);
+                }}
+                onLoad={() => {
+                  console.log(`BlogPostCard: Successfully loaded image for "${post.title}" (${post.id}) with URL:`, post.image_url);
                 }}
               />
             ) : (

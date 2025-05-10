@@ -25,6 +25,7 @@ const Blog = () => {
   const fetchBlogPosts = async () => {
     try {
       setLoading(true);
+      console.log('Fetching blog posts for blog page');
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -32,6 +33,13 @@ const Blog = () => {
         .order('published_at', { ascending: false });
         
       if (error) throw error;
+      console.log('Blog page posts fetched:', data?.length, 'posts');
+      
+      // Debug image URLs to check they're unique
+      data?.forEach((post, index) => {
+        console.log(`Post ${index+1} - "${post.title}" image URL:`, post.image_url);
+      });
+      
       setPosts(data || []);
     } catch (err: any) {
       console.error('Error fetching blog posts:', err);
@@ -123,7 +131,10 @@ const Blog = () => {
                             const target = e.target as HTMLImageElement;
                             target.onerror = null;
                             target.src = fallbackImageUrl;
-                            console.log('Error loading blog list image for:', post.title, 'URL was:', post.image_url);
+                            console.log(`Error loading image for post "${post.title}" (${post.id}). Image URL was:`, post.image_url);
+                          }}
+                          onLoad={() => {
+                            console.log(`Successfully loaded image for "${post.title}" (${post.id}) with URL:`, post.image_url);
                           }}
                         />
                       ) : (
