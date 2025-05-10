@@ -21,6 +21,8 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
     });
   };
 
+  const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
+
   return (
     <div className={`group bg-white dark:bg-gray-800 border border-border rounded-xl overflow-hidden shadow-sm 
       transition-all duration-300 hover:shadow-md ${featured ? 'md:col-span-2' : ''}`}>
@@ -35,13 +37,17 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = '/placeholder.svg';
-                  console.log('Error loading image:', post.image_url);
+                  target.src = fallbackImageUrl;
+                  console.log('Using fallback image for:', post.title);
                 }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
-                No image
+                <img 
+                  src={fallbackImageUrl} 
+                  alt="Placeholder" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
           </div>
