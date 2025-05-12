@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DonationData {
@@ -52,4 +53,4 @@ export const updateDonationStatus = async (id: string, status: 'pending' | 'comp
       error: error.message || 'Failed to update donation status'
     };
   }
-}; 
+};

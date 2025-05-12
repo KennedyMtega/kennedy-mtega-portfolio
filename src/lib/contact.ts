@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ContactFormData {
@@ -15,7 +16,9 @@ export const submitContactForm = async (data: ContactFormData) => {
         name: data.name,
         email: data.email,
         subject: data.subject,
-        message: data.message
+        message: data.message,
+        is_read: false,
+        is_archived: false
       });
 
     if (error) {
@@ -30,4 +33,4 @@ export const submitContactForm = async (data: ContactFormData) => {
       error: error.message || 'Failed to submit message'
     };
   }
-}; 
+};

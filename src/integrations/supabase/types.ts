@@ -361,6 +361,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_device_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          device_type: string
+          count: number
+        }[]
+      }
+      get_donation_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_amount: number
+          donation_count: number
+          average_amount: number
+          completed_count: number
+          pending_count: number
+          failed_count: number
+        }[]
+      }
+      get_popular_pages: {
+        Args: { limit_count?: number }
+        Returns: {
+          page_path: string
+          view_count: number
+        }[]
+      }
+      get_referrer_stats: {
+        Args: { limit_count?: number }
+        Returns: {
+          referrer: string
+          count: number
+        }[]
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string

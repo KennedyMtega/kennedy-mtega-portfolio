@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export const trackPageView = async (pagePath: string) => {
@@ -24,4 +25,4 @@ export const trackPageView = async (pagePath: string) => {
   } catch (error) {
     console.error('Error tracking page view:', error);
   }
-}; 
+};
