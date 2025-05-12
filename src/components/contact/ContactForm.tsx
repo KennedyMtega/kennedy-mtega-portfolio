@@ -1,14 +1,14 @@
+
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Button from '@/components/ui/Button';
 import { Send } from 'lucide-react';
+import { submitContactForm } from '@/lib/contact';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     subject: '',
     message: ''
   });
@@ -25,27 +25,17 @@ const ContactForm = () => {
     setLoading(true);
     try {
       // Validate form data
-      if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
-        throw new Error("All fields are required");
+      if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+        throw new Error("Please fill out all required fields");
       }
 
-      // Insert message into Supabase
-      const { error } = await supabase
-        .from('contact_messages')
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          subject: formData.subject,
-          message: formData.message,
-          is_read: false,
-          is_archived: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-      if (error) throw error;
+      const result = await submitContactForm(formData);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Failed to send message");
+      }
 
-      // Send to Make.com webhook
+      // Try to send to webhook if available (but don't block the user flow if it fails)
       try {
         await fetch('https://hook.eu2.make.com/xqs97kr38xcxggcu77yzevrk2yb1op2e', {
           method: 'POST',
@@ -53,7 +43,6 @@ const ContactForm = () => {
           body: JSON.stringify(formData),
         });
       } catch (webhookError) {
-        // Optionally log or show a warning, but don't block the user
         console.warn('Webhook error:', webhookError);
       }
 
@@ -61,11 +50,11 @@ const ContactForm = () => {
         title: "Message sent successfully",
         description: "Thank you for your message. I'll get back to you soon."
       });
+      
       // Reset form after successful submission
       setFormData({
         name: '',
         email: '',
-        phone: '',
         subject: '',
         message: ''
       });
@@ -119,20 +108,6 @@ const ContactForm = () => {
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white"
             />
           </div>
-        </div>
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Phone Number*
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white"
-          />
         </div>
         <div>
           <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
