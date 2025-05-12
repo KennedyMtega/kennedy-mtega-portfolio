@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import Header from '../components/layout/Header';
@@ -21,7 +22,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Kennedy Mtega | Developer & Entrepreneur in Tanzania</title>
+        <title>{"Kennedy Mtega | Developer & Entrepreneur in Tanzania"}</title>
         <meta name="description" content="Kennedy Mtega: Building innovative technology solutions that empower and connect communities across Tanzania. Developer, Entrepreneur, and Visionary." />
         <meta name="keywords" content="Kennedy Mtega, Tanzania developer, web development, technology solutions, entrepreneur, software engineer" />
         <meta property="og:title" content="Kennedy Mtega | Developer & Entrepreneur in Tanzania" />

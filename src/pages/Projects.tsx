@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import Header from '../components/layout/Header';
@@ -41,7 +42,7 @@ const Projects = () => {
   return (
     <>
       <Helmet>
-        <title>Projects | Kennedy Mtega</title>
+        <title>{"Projects | Kennedy Mtega"}</title>
         <meta name="description" content="Explore Kennedy Mtega's portfolio of innovative technology projects. From web applications to mobile solutions, discover how technology is being used to empower communities in Tanzania." />
         <meta name="keywords" content="Kennedy Mtega projects, Tanzania technology projects, web development portfolio, software projects, tech solutions Tanzania" />
         <meta property="og:title" content="Projects | Kennedy Mtega" />

@@ -93,10 +93,10 @@ const BlogPost = () => {
   return (
     <>
       <Helmet>
-        <title>{post?.title} | Kennedy Mtega's Blog</title>
+        <title>{post?.title ? `${post.title} | Kennedy Mtega's Blog` : "Blog Post | Kennedy Mtega"}</title>
         <meta name="description" content={post?.excerpt} />
         <meta name="keywords" content={`${post?.title}, ${post?.tags?.join(', ')}, Tanzania tech blog, web development blog, software development insights`} />
-        <meta property="og:title" content={`${post?.title} | Kennedy Mtega's Blog`} />
+        <meta property="og:title" content={post?.title ? `${post.title} | Kennedy Mtega's Blog` : "Blog Post | Kennedy Mtega"} />
         <meta property="og:description" content={post?.excerpt} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://kennedymtega.com/blog/${post?.slug}`} />
@@ -105,7 +105,7 @@ const BlogPost = () => {
         <meta property="article:author" content={post?.author} />
         <meta property="article:tag" content={post?.tags?.join(', ')} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${post?.title} | Kennedy Mtega's Blog`} />
+        <meta name="twitter:title" content={post?.title ? `${post.title} | Kennedy Mtega's Blog` : "Blog Post | Kennedy Mtega"} />
         <meta name="twitter:description" content={post?.excerpt} />
         <meta name="twitter:image" content={post?.image_url || '/og-image.png'} />
       </Helmet>

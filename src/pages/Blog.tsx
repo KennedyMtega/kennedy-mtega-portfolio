@@ -63,7 +63,7 @@ const Blog = () => {
   return (
     <>
       <Helmet>
-        <title>Blog | Kennedy Mtega</title>
+        <title>{"Blog | Kennedy Mtega"}</title>
         <meta name="description" content="Read insights and perspectives from Kennedy Mtega on technology, entrepreneurship, and development in Tanzania. Stay updated with the latest trends and innovations." />
         <meta name="keywords" content="Kennedy Mtega blog, Tanzania technology blog, web development blog, tech insights Tanzania, software development blog" />
         <meta property="og:title" content="Blog | Kennedy Mtega" />
@@ -76,6 +76,7 @@ const Blog = () => {
         <meta name="twitter:description" content="Read insights and perspectives from Kennedy Mtega on technology, entrepreneurship, and development in Tanzania. Stay updated with the latest trends and innovations." />
         <meta name="twitter:image" content="/og-image.png" />
       </Helmet>
+      
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow pt-16 px-4 md:px-6 py-20 md:py-32">
