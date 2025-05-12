@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { supabase } from '@/integrations/supabase/client';
 import {
   BarChart,
   Bar,
@@ -27,21 +26,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-
-interface DeviceStatsItem {
-  device_type: string;
-  count: number;
-}
-
-interface PopularPageItem {
-  page_path: string;
-  view_count: number;
-}
-
-interface ReferrerStatsItem {
-  referrer: string;
-  count: number;
-}
+import { fetchDeviceStats, fetchPopularPages, fetchReferrerStats, DeviceStat, PopularPage, ReferrerStat } from '@/utils/analytics';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B'];
 
@@ -60,9 +45,9 @@ const DeviceIcon = ({ device }: { device: string }) => {
 };
 
 const DashboardAnalytics = () => {
-  const [deviceStats, setDeviceStats] = useState<DeviceStatsItem[]>([]);
-  const [popularPages, setPopularPages] = useState<PopularPageItem[]>([]);
-  const [referrerStats, setReferrerStats] = useState<ReferrerStatsItem[]>([]);
+  const [deviceStats, setDeviceStats] = useState<DeviceStat[]>([]);
+  const [popularPages, setPopularPages] = useState<PopularPage[]>([]);
+  const [referrerStats, setReferrerStats] = useState<ReferrerStat[]>([]);
   const [loading, setLoading] = useState({
     devices: true,
     pages: true,
@@ -79,23 +64,21 @@ const DashboardAnalytics = () => {
   }, [dateRange]);
 
   const fetchAllStats = async () => {
-    fetchDeviceStats();
-    fetchPopularPages();
-    fetchReferrerStats();
+    fetchDeviceStatsData();
+    fetchPopularPagesData();
+    fetchReferrerStatsData();
   };
 
-  const fetchDeviceStats = async () => {
+  const fetchDeviceStatsData = async () => {
     try {
       setLoading(prev => ({ ...prev, devices: true }));
       
-      const { data, error } = await supabase.rpc('get_device_stats');
-      
-      if (error) throw error;
+      const data = await fetchDeviceStats();
       
       console.log("Analytics: Device stats fetched:", data);
       
       // Handle null or missing device types
-      const processedData = (data || []).map((item: any) => ({
+      const processedData = data.map((item) => ({
         device_type: item.device_type || 'Unknown',
         count: item.count,
       }));
@@ -113,17 +96,15 @@ const DashboardAnalytics = () => {
     }
   };
 
-  const fetchPopularPages = async () => {
+  const fetchPopularPagesData = async () => {
     try {
       setLoading(prev => ({ ...prev, pages: true }));
       
-      const { data, error } = await supabase.rpc('get_popular_pages', { limit_count: 10 });
-      
-      if (error) throw error;
+      const data = await fetchPopularPages(10);
       
       console.log("Analytics: Popular pages fetched:", data);
       
-      setPopularPages(data || []);
+      setPopularPages(data);
     } catch (err: any) {
       console.error('Error fetching popular pages:', err);
       toast({
@@ -136,23 +117,15 @@ const DashboardAnalytics = () => {
     }
   };
 
-  const fetchReferrerStats = async () => {
+  const fetchReferrerStatsData = async () => {
     try {
       setLoading(prev => ({ ...prev, referrers: true }));
       
-      const { data, error } = await supabase.rpc('get_referrer_stats', { limit_count: 10 });
-      
-      if (error) throw error;
+      const data = await fetchReferrerStats(10);
       
       console.log("Analytics: Referrer stats fetched:", data);
       
-      // Process data to handle null referrers and clean URLs
-      const processedData = (data || []).map((item: any) => ({
-        referrer: item.referrer ? cleanReferrerUrl(item.referrer) : 'Direct / None',
-        count: item.count,
-      }));
-      
-      setReferrerStats(processedData);
+      setReferrerStats(data);
     } catch (err: any) {
       console.error('Error fetching referrer stats:', err);
       toast({
