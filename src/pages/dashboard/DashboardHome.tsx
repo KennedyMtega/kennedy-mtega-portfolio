@@ -1,6 +1,5 @@
-
 // Dashboard home page with overview statistics and quick actions
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -21,15 +20,9 @@ const DashboardHome = () => {
   const [notifications, setNotifications] = useState<{message: string, type: string}[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchRecentDonations();
-    fetchNotifications();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  // Use memoized fetch functions to prevent unnecessary re-renders
+  const fetchDashboardData = useCallback(async () => {
     try {
-      setLoading(true);
       // Fetch projects count
       const { count: projectsCount, error: projectsError } = await supabase
         .from('projects')
@@ -70,12 +63,10 @@ const DashboardHome = () => {
         description: "There was an error loading the dashboard data. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchRecentDonations = async () => {
+  const fetchRecentDonations = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('donations')
@@ -88,9 +79,9 @@ const DashboardHome = () => {
     } catch (error) {
       console.error('Error fetching recent donations:', error);
     }
-  };
+  }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     // This would typically fetch from a notifications table or API
     // For now, let's simulate some notifications based on app data
     try {
@@ -138,7 +129,26 @@ const DashboardHome = () => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
-  };
+  }, []);
+
+  // Load all data in parallel and only once on component mount
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchDashboardData(),
+          fetchRecentDonations(),
+          fetchNotifications()
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadDashboardData();
+    // No dependencies here to ensure it only runs once on mount
+  }, []);
 
   const formatCurrency = (amount: number, currency: string) => {
     if (currency === 'USD') {
