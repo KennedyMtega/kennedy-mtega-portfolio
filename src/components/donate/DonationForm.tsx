@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, Heart, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
+import { formatCurrency, convertCurrency } from '@/lib/donations';
 
 const DonationForm = () => {
   const [formState, setFormState] = useState({
@@ -15,7 +16,7 @@ const DonationForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-//
+
   const currencies = [
     { code: 'USD', label: 'US Dollar ($)' },
     { code: 'TZS', label: 'Tanzanian Shilling (TSh)' },
@@ -77,6 +78,22 @@ const DonationForm = () => {
       setLoading(false);
     }
   };
+
+  const getEquivalentAmount = () => {
+    if (!formState.amount || isNaN(Number(formState.amount))) return null;
+    
+    const amount = parseFloat(formState.amount);
+    if (formState.currency === 'USD') {
+      const tzsAmount = convertCurrency(amount, 'USD', 'TZS');
+      return `${formatCurrency(tzsAmount, 'TZS')}`;
+    } else if (formState.currency === 'TZS') {
+      const usdAmount = convertCurrency(amount, 'TZS', 'USD');
+      return `${formatCurrency(usdAmount, 'USD')}`;
+    }
+    return null;
+  };
+
+  const equivalentAmount = getEquivalentAmount();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
@@ -150,6 +167,11 @@ const DonationForm = () => {
                 placeholder="25.00"
               />
             </div>
+            {equivalentAmount && (
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Equivalent to approximately {equivalentAmount}
+              </p>
+            )}
           </div>
           <div>
             <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
