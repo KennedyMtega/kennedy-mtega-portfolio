@@ -15,7 +15,7 @@ const DonationForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-//
+
   const currencies = [
     { code: 'USD', label: 'US Dollar ($)' },
     { code: 'TZS', label: 'Tanzanian Shilling (TSh)' },
@@ -78,6 +78,16 @@ const DonationForm = () => {
     }
   };
 
+  const getCurrencySymbol = (currencyCode: string) => {
+    switch(currencyCode) {
+      case 'USD': return '$';
+      case 'TZS': return 'TSh';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      default: return currencyCode;
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
       <div className="p-6 bg-[#191970] text-white">
@@ -135,7 +145,9 @@ const DonationForm = () => {
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <DollarSign className="h-5 w-5 text-gray-400" />
+                <span className="text-gray-500 dark:text-gray-400">
+                  {getCurrencySymbol(formState.currency)}
+                </span>
               </div>
               <input
                 id="amount"
@@ -147,9 +159,14 @@ const DonationForm = () => {
                 value={formState.amount}
                 onChange={handleChange}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                placeholder="25.00"
+                placeholder={formState.currency === 'TZS' ? "10000.00" : "25.00"}
               />
             </div>
+            {formState.currency === 'TZS' && formState.amount && !isNaN(parseFloat(formState.amount)) && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Approx. ${(parseFloat(formState.amount) / 2500).toFixed(2)} USD
+              </p>
+            )}
           </div>
           <div>
             <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

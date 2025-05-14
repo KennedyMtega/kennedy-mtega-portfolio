@@ -1,6 +1,6 @@
 
 // Donation management and tracking interface
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Donation } from '@/types/dashboard';
@@ -33,10 +33,12 @@ const DashboardDonations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
-    totalAmount: 0,
+    totalAmountUSD: 0,
+    totalAmountTZS: 0,
     completedCount: 0,
     pendingCount: 0,
-    averageDonation: 0,
+    averageDonationUSD: 0,
+    averageDonationTZS: 0,
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<{
@@ -48,9 +50,137 @@ const DashboardDonations = () => {
   
   const { toast } = useToast();
 
+  // Use useCallback to prevent unnecessary re-renders
+  const fetchDonations = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Donations: Fetching all donations");
+      const { data, error } = await supabase
+        .from('donations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      console.log(`Donations: Fetched ${data?.length} donations`);
+      
+      if (data) {
+        setDonations(data);
+        setFilteredDonations(data);
+        
+        // Calculate stats
+        calculateStats(data);
+        
+        // Generate monthly data for chart
+        generateMonthlyData(data);
+      }
+      
+    } catch (err: any) {
+      console.error('Error fetching donations:', err);
+      setError(err.message);
+      toast({
+        title: "Error",
+        description: `Failed to load donations: ${err.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  const calculateStats = useCallback((donationData: Donation[]) => {
+    const completed = donationData.filter(d => d.status === 'completed');
+    const pending = donationData.filter(d => d.status === 'pending');
+    
+    // Calculate totals by currency
+    let totalUSD = 0;
+    let totalTZS = 0;
+    let countUSD = 0;
+    let countTZS = 0;
+    
+    donationData.forEach(donation => {
+      const amount = parseFloat(donation.amount as any);
+      
+      if (donation.currency === 'USD') {
+        totalUSD += amount;
+        countUSD++;
+      } else if (donation.currency === 'TZS') {
+        totalTZS += amount;
+        countTZS++;
+      }
+    });
+    
+    setStats({
+      totalAmountUSD: totalUSD,
+      totalAmountTZS: totalTZS,
+      completedCount: completed.length,
+      pendingCount: pending.length,
+      averageDonationUSD: countUSD > 0 ? totalUSD / countUSD : 0,
+      averageDonationTZS: countTZS > 0 ? totalTZS / countTZS : 0
+    });
+  }, []);
+
+  const generateMonthlyData = useCallback((donationData: Donation[]) => {
+    // Group donations by month
+    const monthlyGroups: Record<string, { month: string, amountUSD: number, amountTZS: number, count: number }> = {};
+    
+    donationData.forEach(donation => {
+      const date = new Date(donation.created_at);
+      const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+      const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+      
+      if (!monthlyGroups[monthYear]) {
+        monthlyGroups[monthYear] = { month: monthName, amountUSD: 0, amountTZS: 0, count: 0 };
+      }
+      
+      const amount = parseFloat(donation.amount as any);
+      
+      if (donation.currency === 'USD') {
+        monthlyGroups[monthYear].amountUSD += amount;
+      } else if (donation.currency === 'TZS') {
+        monthlyGroups[monthYear].amountTZS += amount;
+      }
+      
+      monthlyGroups[monthYear].count += 1;
+    });
+    
+    // Convert to array and sort by date
+    const monthlyArray = Object.values(monthlyGroups);
+    monthlyArray.sort((a, b) => {
+      // Extract year and month for sorting
+      const [aMonth, aYear] = a.month.split(' ');
+      const [bMonth, bYear] = b.month.split(' ');
+      
+      const aDate = new Date(`${aMonth} 20${aYear}`);
+      const bDate = new Date(`${bMonth} 20${bYear}`);
+      
+      return aDate.getTime() - bDate.getTime();
+    });
+    
+    // Get last 6 months only
+    const last6Months = monthlyArray.slice(-6);
+    setMonthlyData(last6Months);
+  }, []);
+
   useEffect(() => {
     fetchDonations();
-  }, []);
+    
+    // Set up real-time listener for donation changes
+    const donationsSubscription = supabase
+      .channel('public:donations:changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'donations' }, 
+        fetchDonations
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(donationsSubscription);
+    };
+  }, [fetchDonations]);
 
   useEffect(() => {
     // Apply filters and search to donations
@@ -93,98 +223,13 @@ const DashboardDonations = () => {
     setFilteredDonations(result);
   }, [donations, searchQuery, sortConfig, filterStatus]);
 
-  const fetchDonations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log("Donations: Fetching all donations");
-      const { data, error } = await supabase
-        .from('donations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      console.log(`Donations: Fetched ${data?.length} donations`);
-      setDonations(data || []);
-      setFilteredDonations(data || []);
-      
-      // Calculate stats
-      calculateStats(data || []);
-      
-      // Generate monthly data for chart
-      generateMonthlyData(data || []);
-      
-    } catch (err: any) {
-      console.error('Error fetching donations:', err);
-      setError(err.message);
-      toast({
-        title: "Error",
-        description: `Failed to load donations: ${err.message}`,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateStats = (donationData: Donation[]) => {
-    const completed = donationData.filter(d => d.status === 'completed');
-    const pending = donationData.filter(d => d.status === 'pending');
-    
-    const totalAmount = donationData.reduce((sum, donation) => sum + donation.amount, 0);
-    const completedAmount = completed.reduce((sum, donation) => sum + donation.amount, 0);
-    const averageDonation = donationData.length > 0 ? totalAmount / donationData.length : 0;
-    
-    setStats({
-      totalAmount: totalAmount,
-      completedCount: completed.length,
-      pendingCount: pending.length,
-      averageDonation: averageDonation
-    });
-  };
-
-  const generateMonthlyData = (donationData: Donation[]) => {
-    // Group donations by month
-    const monthlyGroups: Record<string, { month: string, amount: number, count: number }> = {};
-    
-    donationData.forEach(donation => {
-      const date = new Date(donation.created_at);
-      const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-      const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-      
-      if (!monthlyGroups[monthYear]) {
-        monthlyGroups[monthYear] = { month: monthName, amount: 0, count: 0 };
-      }
-      
-      monthlyGroups[monthYear].amount += donation.amount;
-      monthlyGroups[monthYear].count += 1;
-    });
-    
-    // Convert to array and sort by date
-    const monthlyArray = Object.values(monthlyGroups);
-    monthlyArray.sort((a, b) => {
-      // Extract year and month for sorting
-      const [aMonth, aYear] = a.month.split(' ');
-      const [bMonth, bYear] = b.month.split(' ');
-      
-      const aDate = new Date(`${aMonth} 20${aYear}`);
-      const bDate = new Date(`${bMonth} 20${bYear}`);
-      
-      return aDate.getTime() - bDate.getTime();
-    });
-    
-    // Get last 6 months only
-    const last6Months = monthlyArray.slice(-6);
-    setMonthlyData(last6Months);
-  };
-
   // Format currency
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -208,13 +253,7 @@ const DashboardDonations = () => {
         
       if (error) throw error;
       
-      // Update local state
-      const updatedDonations = donations.map(donation => 
-        donation.id === id ? { ...donation, status } : donation
-      );
-      
-      setDonations(updatedDonations);
-      calculateStats(updatedDonations);
+      // No need to update local state as the real-time subscription will trigger a refresh
       
       toast({
         title: "Status Updated",
@@ -259,20 +298,20 @@ const DashboardDonations = () => {
                 <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Donations</p>
-                <p className="font-semibold">{formatCurrency(stats.totalAmount)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Donations (USD)</p>
+                <p className="font-semibold">{formatCurrency(stats.totalAmountUSD, 'USD')}</p>
               </div>
             </div>
           </div>
           
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-border">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full mr-3">
-                <PieChart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full mr-3">
+                <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Average Donation</p>
-                <p className="font-semibold">{formatCurrency(stats.averageDonation)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Donations (TZS)</p>
+                <p className="font-semibold">{formatCurrency(stats.totalAmountTZS, 'TZS')}</p>
               </div>
             </div>
           </div>
@@ -326,7 +365,8 @@ const DashboardDonations = () => {
                   <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
                   <Tooltip />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="amount" name="Amount ($)" fill="#8884d8" />
+                  <Bar yAxisId="left" dataKey="amountUSD" name="USD Amount" fill="#8884d8" />
+                  <Bar yAxisId="left" dataKey="amountTZS" name="TZS Amount" fill="#4a82bd" />
                   <Bar yAxisId="right" dataKey="count" name="# of Donations" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
@@ -505,7 +545,7 @@ const DashboardDonations = () => {
                         {donation.email || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {formatCurrency(donation.amount, donation.currency)}
+                        {formatCurrency(parseFloat(donation.amount as any), donation.currency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
