@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -17,8 +16,7 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
-  const fallbackImageUrl = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b';
-
+  
   useEffect(() => {
     window.scrollTo(0, 0);
     
@@ -46,7 +44,7 @@ const BlogPost = () => {
         throw new Error('Blog post not found');
       }
       
-      console.log("Blog post fetched successfully:", data.title);
+      console.log("Blog post fetched successfully:", data.title, "Image URL:", data.image_url);
       setPost(data);
       
       // Fetch related posts from the same category
@@ -62,6 +60,7 @@ const BlogPost = () => {
           
         if (!relatedError && relatedData) {
           console.log("Related posts fetched:", relatedData.length);
+          console.log("Related post images:", relatedData.map(post => post.image_url));
           setRelatedPosts(relatedData);
         }
       }
@@ -88,6 +87,21 @@ const BlogPost = () => {
       console.error('Error formatting date:', e);
       return '';
     }
+  };
+
+  // Choose a fallback image based on the post ID to ensure different fallbacks
+  const getFallbackImageUrl = (postId: string) => {
+    const fallbacks = [
+      'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
+      'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
+      'https://images.unsplash.com/photo-1518770660439-4636190af475',
+      'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
+      'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d'
+    ];
+    
+    // Use the last character of the ID to select a fallback
+    const index = parseInt(postId.slice(-1), 16) % fallbacks.length;
+    return fallbacks[index];
   };
 
   return (
@@ -150,8 +164,8 @@ const BlogPost = () => {
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null;
-                          target.src = fallbackImageUrl;
-                          console.log('Error loading blog post detail image:', post.title, 'URL was:', post.image_url);
+                          target.src = getFallbackImageUrl(post.id);
+                          console.log('Error loading blog post image:', post.title, 'URL was:', post.image_url);
                         }}
                       />
                     </div>
@@ -215,7 +229,7 @@ const BlogPost = () => {
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
                                   target.onerror = null;
-                                  target.src = fallbackImageUrl;
+                                  target.src = getFallbackImageUrl(relatedPost.id);
                                   console.log('Error loading related post image:', relatedPost.title, 'URL was:', relatedPost.image_url);
                                 }}
                               />

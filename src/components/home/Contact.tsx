@@ -1,10 +1,68 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, MessageSquare, ArrowRight } from 'lucide-react';
 import AnimatedSection from '../common/AnimatedSection';
 import Button from '../ui/Button';
+import { submitContactForm } from '@/lib/contact';
+import { useToast } from '@/hooks/use-toast';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Validate required fields
+      if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+        throw new Error("Please fill out all required fields");
+      }
+
+      const result = await submitContactForm(formData);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Failed to send message");
+      }
+
+      toast({
+        title: "Message sent successfully",
+        description: "Thank you for your message. I'll get back to you soon."
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error sending message",
+        description: error.message || "There was an error sending your message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="py-20 md:py-32 bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
       {/* Background decorations */}
@@ -12,7 +70,7 @@ const Contact = () => {
         <div className="blur-circle w-[600px] h-[600px] bg-blue-400/10 left-[-300px] bottom-[-200px]"></div>
         <div className="blur-circle w-[500px] h-[500px] bg-purple-400/10 right-[-200px] top-[-100px]"></div>
       </div>
-//
+
       <div className="container px-4 md:px-6 relative z-10">
         <AnimatedSection animation="slide-up" className="text-center mb-16">
           <span className="inline-block py-1 px-3 mb-4 bg-primary/10 text-primary text-sm font-medium rounded-full">
@@ -42,8 +100,8 @@ const Contact = () => {
                   <Mail className="w-5 h-5 mt-1 mr-3 text-white/70" />
                   <div>
                     <h4 className="font-medium">Email</h4>
-                    <a href="mailto:contact@example.com" className="text-white/80 hover:text-white transition-colors">
-                      contact@example.com
+                    <a href="mailto:mtegakennedy@gmail.com" className="text-white/80 hover:text-white transition-colors">
+                      mtegakennedy@gmail.com
                     </a>
                   </div>
                 </div>
@@ -69,7 +127,7 @@ const Contact = () => {
               <h3 className="text-2xl font-display font-bold mb-6">
                 Send a Message
               </h3>
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-foreground/70 mb-1">
@@ -78,8 +136,12 @@ const Contact = () => {
                     <input
                       type="text"
                       id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
                       className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                       placeholder="Your name"
+                      required
                     />
                   </div>
                   <div>
@@ -89,10 +151,28 @@ const Contact = () => {
                     <input
                       type="email"
                       id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                       placeholder="Your email"
+                      required
                     />
                   </div>
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-foreground/70 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    placeholder="Your phone number"
+                  />
                 </div>
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-foreground/70 mb-1">
@@ -101,8 +181,12 @@ const Contact = () => {
                   <input
                     type="text"
                     id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     placeholder="How can I help you?"
+                    required
                   />
                 </div>
                 <div>
@@ -111,50 +195,14 @@ const Contact = () => {
                   </label>
                   <textarea
                     id="message"
+                    name="message"
                     rows={4}
+                    value={formData.message}
+                    onChange={handleChange}
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     placeholder="Your message"
+                    required
                   ></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground/70 mb-1">
-                    How can I collaborate?
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="collab-investment"
-                        name="collaboration"
-                        className="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300"
-                      />
-                      <label htmlFor="collab-investment" className="ml-2 text-sm text-foreground/80">
-                        Investment
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="collab-partnership"
-                        name="collaboration"
-                        className="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300"
-                      />
-                      <label htmlFor="collab-partnership" className="ml-2 text-sm text-foreground/80">
-                        Partnership
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="collab-project"
-                        name="collaboration"
-                        className="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300"
-                      />
-                      <label htmlFor="collab-project" className="ml-2 text-sm text-foreground/80">
-                        Project inquiry
-                      </label>
-                    </div>
-                  </div>
                 </div>
                 <div className="pt-2">
                   <Button
@@ -162,6 +210,7 @@ const Contact = () => {
                     size="lg"
                     icon={<ArrowRight size={16} />}
                     fullWidth
+                    loading={loading}
                   >
                     Send Message
                   </Button>

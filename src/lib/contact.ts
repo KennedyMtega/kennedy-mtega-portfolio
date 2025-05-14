@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ContactFormData {
   name: string;
   email: string;
+  phone?: string;
   subject: string;
   message: string;
 }
@@ -15,6 +16,7 @@ export const submitContactForm = async (data: ContactFormData) => {
       .insert({
         name: data.name,
         email: data.email,
+        phone: data.phone || null,
         subject: data.subject,
         message: data.message,
         is_read: false,

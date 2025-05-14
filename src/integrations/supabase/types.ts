@@ -119,6 +119,7 @@ export type Database = {
           is_read: boolean | null
           message: string
           name: string
+          phone: string | null
           subject: string
           updated_at: string | null
         }
@@ -130,6 +131,7 @@ export type Database = {
           is_read?: boolean | null
           message: string
           name: string
+          phone?: string | null
           subject: string
           updated_at?: string | null
         }
@@ -141,6 +143,7 @@ export type Database = {
           is_read?: boolean | null
           message?: string
           name?: string
+          phone?: string | null
           subject?: string
           updated_at?: string | null
         }
