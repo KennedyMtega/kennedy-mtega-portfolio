@@ -1,13 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { convertCurrency, formatCurrency } from '@/lib/dashboard/donations';
 
 export interface DonationData {
   name: string;
   email: string;
   amount: number;
   currency: string;
-  message?: string;
 }
 
 export const createDonation = async (data: DonationData) => {
@@ -19,7 +17,6 @@ export const createDonation = async (data: DonationData) => {
         email: data.email,
         amount: data.amount,
         currency: data.currency,
-        message: data.message,
         status: 'pending'
       });
 
@@ -57,6 +54,3 @@ export const updateDonationStatus = async (id: string, status: 'pending' | 'comp
     };
   }
 };
-
-// Export the utility functions for formatting and converting currencies
-export { convertCurrency, formatCurrency };

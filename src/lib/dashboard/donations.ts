@@ -2,42 +2,11 @@
 import { supabase } from '../supabase';
 
 export interface Donation {
-  id: string;
   name: string;
   email: string;
   amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed';
-  created_at: string;
-  payment_method?: string;
-  message?: string;
-}
-
-// Exchange rate - in a production app, this would come from an API
-const TZS_EXCHANGE_RATE = 2500; // 1 USD = 2500 TZS
-
-export function convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
-  if (fromCurrency === toCurrency) return amount;
-  
-  if (fromCurrency === 'USD' && toCurrency === 'TZS') {
-    return amount * TZS_EXCHANGE_RATE;
-  }
-  
-  if (fromCurrency === 'TZS' && toCurrency === 'USD') {
-    return amount / TZS_EXCHANGE_RATE;
-  }
-  
-  // Default case or unsupported conversion
-  return amount;
-}
-
-export function formatCurrency(amount: number, currency: string): string {
-  if (currency === 'USD') {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  } else if (currency === 'TZS') {
-    return new Intl.NumberFormat('en-TZ', { style: 'currency', currency: 'TZS' }).format(amount);
-  }
-  return `${amount} ${currency}`;
 }
 
 export async function getDonations(options?: {
