@@ -1,11 +1,12 @@
 
-import { Toast, toast as showToast } from "@/components/ui/use-toast";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { type ToastProps, ToastActionElement } from "@/components/ui/toast";
+import { useState, useEffect, useRef, useCallback } from "react";
 
-type ToastProps = {
+type Toast = {
+  id: string;
   title?: string;
-  description?: string; 
-  action?: React.ReactNode;
+  description?: string;
+  action?: ToastActionElement;
   variant?: "default" | "destructive";
 };
 
@@ -20,7 +21,11 @@ export function useToast() {
   }, [toasts]);
 
   const toast = useCallback(({ ...props }: ToastProps) => {
-    return showToast({ ...props });
+    const id = crypto.randomUUID();
+    const newToast = { ...props, id };
+    
+    setToasts((toasts) => [...toasts, newToast]);
+    return newToast;
   }, []);
 
   return {
@@ -38,5 +43,9 @@ export function useToast() {
 }
 
 export const toast = ({ ...props }: ToastProps) => {
-  return showToast({ ...props });
+  const id = crypto.randomUUID();
+  const newToast = { ...props, id };
+  // This is used directly, not via the hook, so we need to manually update the toast state
+  // Instead of setting state, we return the toast object so it can be used by components
+  return newToast;
 };
