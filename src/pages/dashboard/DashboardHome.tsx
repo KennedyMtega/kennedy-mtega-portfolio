@@ -1,4 +1,3 @@
-
 // Dashboard home page with overview statistics and quick actions
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
