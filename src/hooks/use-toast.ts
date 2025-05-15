@@ -22,9 +22,9 @@ export function useToast() {
 
   const toast = useCallback(({ ...props }: ToastProps) => {
     const id = crypto.randomUUID();
-    const newToast = { ...props, id };
+    const newToast = { ...props, id } as Toast;
     
-    setToasts((toasts) => [...toasts, newToast]);
+    setToasts((toasts) => [...toasts, newToast] as ToastState);
     return newToast;
   }, []);
 
@@ -44,7 +44,7 @@ export function useToast() {
 
 export const toast = ({ ...props }: ToastProps) => {
   const id = crypto.randomUUID();
-  const newToast = { ...props, id };
+  const newToast = { ...props, id } as Toast;
   // This is used directly, not via the hook, so we need to manually update the toast state
   // Instead of setting state, we return the toast object so it can be used by components
   return newToast;
