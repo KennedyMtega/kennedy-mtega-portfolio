@@ -6,7 +6,6 @@ import Footer from '../components/layout/Footer';
 import Hero from '../components/home/Hero';
 import Vision from '../components/home/Vision';
 import ProjectShowcase from '../components/home/ProjectShowcase';
-import Testimonials from '../components/home/Testimonials';
 import BlogPreview from '../components/home/BlogPreview';
 import Contact from '../components/home/Contact';
 import FeaturedServices from '../components/services/FeaturedServices';
@@ -45,7 +44,6 @@ const Index = () => {
             <ProjectShowcase />
           </div>
           <FeaturedServices />
-          <Testimonials />
           <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
             <BlogPreview />
           </div>

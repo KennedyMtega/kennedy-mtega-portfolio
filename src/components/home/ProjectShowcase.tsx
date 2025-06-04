@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import AnimatedSection from '../common/AnimatedSection';
@@ -35,6 +36,17 @@ const ProjectShowcase = () => {
 
     fetchFeaturedProjects();
   }, []);
+
+  // Auto-advance carousel every 4 seconds
+  useEffect(() => {
+    if (projects.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev === projects.length - 1 ? 0 : prev + 1));
+    }, 4000); // Switch every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [projects.length]);
 
   const handlePrevious = () => {
     setActiveIndex((prev) => (prev === 0 ? projects.length - 1 : prev - 1));
