@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Service } from '@/types/services';
 import { getServices, deleteService } from '@/lib/services';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button-shadcn';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

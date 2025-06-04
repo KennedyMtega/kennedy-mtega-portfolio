@@ -56,6 +56,7 @@ const ServicePurchaseModal: React.FC<ServicePurchaseModalProps> = ({
         purchase_type: type,
         amount: type === 'purchase' ? service.price : undefined,
         currency: service.currency,
+        status: 'pending',
       });
 
       toast({
