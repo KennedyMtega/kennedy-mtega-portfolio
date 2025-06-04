@@ -9,6 +9,7 @@ import ProjectShowcase from '../components/home/ProjectShowcase';
 import Testimonials from '../components/home/Testimonials';
 import BlogPreview from '../components/home/BlogPreview';
 import Contact from '../components/home/Contact';
+import FeaturedServices from '../components/services/FeaturedServices';
 import { trackPageView } from '../utils/analytics';
 
 // Main landing page component with hero section and featured content
@@ -43,6 +44,7 @@ const Index = () => {
           <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
             <ProjectShowcase />
           </div>
+          <FeaturedServices />
           <Testimonials />
           <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
             <BlogPreview />

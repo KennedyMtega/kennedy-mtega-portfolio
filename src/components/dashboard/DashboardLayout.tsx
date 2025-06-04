@@ -13,7 +13,9 @@ import {
   ChevronLeft, 
   ChevronRight, 
   X,
-  MessageSquare
+  MessageSquare,
+  Briefcase,
+  ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import DashboardHeader from './DashboardHeader';
@@ -32,6 +34,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
     { name: 'Projects', icon: <FolderKanban size={20} />, path: '/dashboard/projects' },
     { name: 'Blog', icon: <FileText size={20} />, path: '/dashboard/blog' },
+    { name: 'Services', icon: <Briefcase size={20} />, path: '/dashboard/services' },
+    { name: 'Service Orders', icon: <ShoppingCart size={20} />, path: '/dashboard/service-purchases' },
     { name: 'Messages', icon: <MessageSquare size={20} />, path: '/dashboard/messages' },
     { name: 'Analytics', icon: <BarChart3 size={20} />, path: '/dashboard/analytics' },
     { name: 'Donations', icon: <DollarSign size={20} />, path: '/dashboard/donations' },

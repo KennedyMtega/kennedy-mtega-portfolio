@@ -1,0 +1,91 @@
+
+import React, { useEffect, useState } from 'react';
+import { Service } from '@/types/services';
+import { getServices } from '@/lib/services';
+import ServiceCard from './ServiceCard';
+import ServicePurchaseModal from './ServicePurchaseModal';
+
+const FeaturedServices = () => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [modalType, setModalType] = useState<'purchase' | 'inquiry'>('purchase');
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchFeaturedServices();
+  }, []);
+
+  const fetchFeaturedServices = async () => {
+    try {
+      const data = await getServices(true); // Get only featured services
+      setServices(data);
+    } catch (error) {
+      console.error('Error fetching featured services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePurchase = (service: Service) => {
+    setSelectedService(service);
+    setModalType('purchase');
+    setModalOpen(true);
+  };
+
+  const handleInquiry = (service: Service) => {
+    setSelectedService(service);
+    setModalType('inquiry');
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedService(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (services.length === 0) {
+    return null; // Don't render anything if no featured services
+  }
+
+  return (
+    <section className="py-16 bg-gray-50 dark:bg-gray-900/50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Services</h2>
+          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Discover our most popular services designed to help you achieve your goals
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              onPurchase={handlePurchase}
+              onInquiry={handleInquiry}
+            />
+          ))}
+        </div>
+      </div>
+
+      <ServicePurchaseModal
+        service={selectedService}
+        type={modalType}
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+      />
+    </section>
+  );
+};
+
+export default FeaturedServices;

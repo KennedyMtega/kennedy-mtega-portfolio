@@ -269,33 +269,113 @@ export type Database = {
         }
         Relationships: []
       }
-      services: {
+      service_purchases: {
         Row: {
+          amount: number | null
+          client_email: string
+          client_name: string
+          client_phone: string | null
           created_at: string | null
-          description: string
-          icon: string | null
+          currency: string | null
           id: string
-          order_index: number | null
-          title: string
+          message: string | null
+          purchase_type: string
+          service_id: string | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
+          amount?: number | null
+          client_email: string
+          client_name: string
+          client_phone?: string | null
           created_at?: string | null
-          description: string
-          icon?: string | null
+          currency?: string | null
           id?: string
-          order_index?: number | null
-          title: string
+          message?: string | null
+          purchase_type: string
+          service_id?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
+          amount?: number | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
           created_at?: string | null
-          description?: string
-          icon?: string | null
+          currency?: string | null
           id?: string
+          message?: string | null
+          purchase_type?: string
+          service_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_purchases_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          currency: string | null
+          description: string
+          featured: boolean | null
+          features: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          order_index: number | null
+          price: number | null
+          pricing_type: string
+          short_description: string | null
+          title: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description: string
+          featured?: boolean | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
           order_index?: number | null
+          price?: number | null
+          pricing_type: string
+          short_description?: string | null
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string
+          featured?: boolean | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          order_index?: number | null
+          price?: number | null
+          pricing_type?: string
+          short_description?: string | null
           title?: string
           updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }

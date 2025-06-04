@@ -1,3 +1,4 @@
+
 // Root component of the application, handles routing and layout
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +14,7 @@ import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
+import Services from "./pages/Services";
 import Auth from "./pages/Auth";
 import ProjectDetail from "./pages/ProjectDetail";
 
@@ -26,6 +28,9 @@ import DashboardMessages from "./pages/dashboard/Messages";
 import DashboardAnalytics from "./pages/dashboard/Analytics";
 import DashboardDonations from "./pages/dashboard/Donations";
 import DashboardSettings from "./pages/dashboard/Settings";
+import DashboardServices from "./pages/dashboard/Services";
+import ServiceEdit from "./pages/dashboard/ServiceEdit";
+import ServicePurchases from "./pages/dashboard/ServicePurchases";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +48,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             
@@ -58,6 +64,10 @@ const App = () => (
             <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
             <Route path="/dashboard/donations" element={<DashboardDonations />} />
             <Route path="/dashboard/settings" element={<DashboardSettings />} />
+            <Route path="/dashboard/services" element={<DashboardServices />} />
+            <Route path="/dashboard/services/new" element={<ServiceEdit />} />
+            <Route path="/dashboard/services/edit/:id" element={<ServiceEdit />} />
+            <Route path="/dashboard/service-purchases" element={<ServicePurchases />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

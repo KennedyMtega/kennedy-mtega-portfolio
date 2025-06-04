@@ -1,11 +1,12 @@
 
+
 // Dashboard home page with overview statistics and quick actions
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Settings as SettingsType } from '@/types/dashboard'; 
-import { Folder, Eye, Mail, FileText, Settings, DollarSign } from 'lucide-react';
+import { Folder, Eye, Mail, FileText, Settings, DollarSign, Briefcase, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const DashboardHome = () => {
@@ -13,6 +14,8 @@ const DashboardHome = () => {
     projects: 0,
     posts: 0,
     messages: 0,
+    services: 0,
+    servicePurchases: 0,
     donations: {
       totalUSD: 0,
       totalTZS: 0,
@@ -29,7 +32,15 @@ const DashboardHome = () => {
       setLoading(true);
       
       // Fetch all data in parallel for better performance
-      const [projectsResponse, postsResponse, messagesResponse, settingsResponse, donationsResponse] = await Promise.all([
+      const [
+        projectsResponse, 
+        postsResponse, 
+        messagesResponse, 
+        settingsResponse, 
+        donationsResponse,
+        servicesResponse,
+        servicePurchasesResponse
+      ] = await Promise.all([
         // Fetch projects count
         supabase.from('projects').select('*', { count: 'exact', head: true }),
         
@@ -43,7 +54,13 @@ const DashboardHome = () => {
         supabase.from('settings').select('*').maybeSingle(),
         
         // Fetch donations
-        supabase.from('donations').select('amount, currency')
+        supabase.from('donations').select('amount, currency'),
+
+        // Fetch active services count
+        supabase.from('services').select('*', { count: 'exact', head: true }).eq('is_active', true),
+
+        // Fetch service purchases count
+        supabase.from('service_purchases').select('*', { count: 'exact', head: true })
       ]);
 
       // Handle any errors
@@ -52,6 +69,8 @@ const DashboardHome = () => {
       if (messagesResponse.error) throw messagesResponse.error;
       if (settingsResponse.error) throw settingsResponse.error;
       if (donationsResponse.error) throw donationsResponse.error;
+      if (servicesResponse.error) throw servicesResponse.error;
+      if (servicePurchasesResponse.error) throw servicePurchasesResponse.error;
       
       // Process donation data
       let totalUSD = 0;
@@ -69,6 +88,8 @@ const DashboardHome = () => {
         projects: projectsResponse.count || 0,
         posts: postsResponse.count || 0,
         messages: messagesResponse.data.length || 0,
+        services: servicesResponse.count || 0,
+        servicePurchases: servicePurchasesResponse.count || 0,
         donations: {
           totalUSD,
           totalTZS,
@@ -123,6 +144,22 @@ const DashboardHome = () => {
         fetchDashboardData
       )
       .subscribe();
+
+    const servicesSubscription = supabase
+      .channel('public:services')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'services' }, 
+        fetchDashboardData
+      )
+      .subscribe();
+
+    const servicePurchasesSubscription = supabase
+      .channel('public:service_purchases')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'service_purchases' }, 
+        fetchDashboardData
+      )
+      .subscribe();
     
     // Clean up subscriptions on component unmount
     return () => {
@@ -130,6 +167,8 @@ const DashboardHome = () => {
       supabase.removeChannel(postsSubscription);
       supabase.removeChannel(messagesSubscription);
       supabase.removeChannel(donationsSubscription);
+      supabase.removeChannel(servicesSubscription);
+      supabase.removeChannel(servicePurchasesSubscription);
     };
   }, [fetchDashboardData]);
 
@@ -151,7 +190,7 @@ const DashboardHome = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Projects Card */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
               <div className="flex items-center mb-4">
@@ -170,6 +209,52 @@ const DashboardHome = () => {
                   className="text-sm text-primary hover:underline flex items-center"
                 >
                   <span>Manage</span>
+                  <Eye className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Services Card */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+              <div className="flex items-center mb-4">
+                <span className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-full mr-3">
+                  <Briefcase className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                </span>
+                <h2 className="text-lg font-semibold">Services</h2>
+              </div>
+              <p className="text-3xl font-bold mb-2">{stats.services}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Active services
+                </span>
+                <Link
+                  to="/dashboard/services"
+                  className="text-sm text-primary hover:underline flex items-center"
+                >
+                  <span>Manage</span>
+                  <Eye className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Service Orders Card */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border">
+              <div className="flex items-center mb-4">
+                <span className="p-2 bg-teal-100 dark:bg-teal-900 rounded-full mr-3">
+                  <ShoppingCart className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                </span>
+                <h2 className="text-lg font-semibold">Service Orders</h2>
+              </div>
+              <p className="text-3xl font-bold mb-2">{stats.servicePurchases}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Total requests
+                </span>
+                <Link
+                  to="/dashboard/service-purchases"
+                  className="text-sm text-primary hover:underline flex items-center"
+                >
+                  <span>View</span>
                   <Eye className="ml-1 h-4 w-4" />
                 </Link>
               </div>
@@ -251,13 +336,20 @@ const DashboardHome = () => {
           {/* Quick Actions */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-border mb-8">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <Link
                 to="/dashboard/projects"
                 className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
               >
                 <Folder className="h-5 w-5 mr-2 text-primary" />
                 <span>Add New Project</span>
+              </Link>
+              <Link
+                to="/dashboard/services/new"
+                className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center"
+              >
+                <Briefcase className="h-5 w-5 mr-2 text-primary" />
+                <span>Add New Service</span>
               </Link>
               <Link
                 to="/dashboard/blog"
