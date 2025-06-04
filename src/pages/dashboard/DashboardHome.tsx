@@ -1,3 +1,4 @@
+
 // Dashboard home page with overview statistics and quick actions
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,9 +59,9 @@ const DashboardHome = () => {
       
       donationsResponse.data.forEach(donation => {
         if (donation.currency === 'USD') {
-          totalUSD += parseFloat(donation.amount);
+          totalUSD += parseFloat(donation.amount.toString());
         } else if (donation.currency === 'TZS') {
-          totalTZS += parseFloat(donation.amount);
+          totalTZS += parseFloat(donation.amount.toString());
         }
       });
 
