@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -29,7 +30,7 @@ const DashboardServices = () => {
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      setServices(data);
+      setServices(data as Service[]);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast({
