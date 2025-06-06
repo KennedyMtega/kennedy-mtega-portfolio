@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log("Refreshing session...");
       const { data, error } = await supabase.auth.getSession();
-      //
+      
       if (error) {
         throw error;
       }
@@ -72,15 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setSession(null);
         
-        // Only redirect to auth if not already there and not a public route
-        const isPublicRoute = 
-          location.pathname === '/auth' || 
-          location.pathname === '/' || 
-          location.pathname.startsWith('/projects') || 
-          location.pathname.startsWith('/blog') || 
-          location.pathname.startsWith('/contact');
+        // Only redirect to auth if trying to access protected routes
+        const isProtectedRoute = 
+          location.pathname.startsWith('/dashboard');
           
-        if (!isPublicRoute) {
+        if (isProtectedRoute) {
           console.log("No session found during refresh, redirecting to auth");
           navigate('/auth', { state: { returnTo: location.pathname }, replace: true });
         }
@@ -123,8 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
           setSession(null);
           
-          // Only redirect if not already on auth page
-          if (location.pathname !== '/auth') {
+          // Only redirect if currently on a protected route
+          if (location.pathname.startsWith('/dashboard')) {
             navigate('/auth', { replace: true });
           }
         }
@@ -189,15 +185,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
             setSession(null);
             
-            // If not on public pages, redirect to auth
-            const isPublicRoute = 
-              location.pathname === '/auth' || 
-              location.pathname === '/' || 
-              location.pathname.startsWith('/projects') || 
-              location.pathname.startsWith('/blog') || 
-              location.pathname.startsWith('/contact');
+            // Only redirect to auth if trying to access protected routes
+            const isProtectedRoute = location.pathname.startsWith('/dashboard');
               
-            if (!isPublicRoute) {
+            if (isProtectedRoute) {
               console.log("Redirecting to auth page");
               navigate('/auth', { state: { returnTo: location.pathname }, replace: true });
             }
