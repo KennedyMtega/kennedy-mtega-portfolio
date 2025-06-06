@@ -13,6 +13,7 @@ const FeaturedServices = () => {
   const [modalType, setModalType] = useState<'purchase' | 'inquiry'>('purchase');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(3); // Default to 3
 
   useEffect(() => {
     fetchFeaturedServices();
@@ -28,6 +29,28 @@ const FeaturedServices = () => {
 
     return () => clearInterval(interval);
   }, [services.length]);
+
+  // Handle responsive visible count
+  useEffect(() => {
+    const getVisibleCount = () => {
+      if (typeof window !== 'undefined') {
+        if (window.innerWidth >= 1024) return 3; // lg screens
+        if (window.innerWidth >= 768) return 2;  // md screens
+        return 1; // sm screens
+      }
+      return 3;
+    };
+
+    const handleResize = () => {
+      setVisibleCount(getVisibleCount());
+    };
+
+    // Set initial value
+    setVisibleCount(getVisibleCount());
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchFeaturedServices = async () => {
     try {
@@ -76,27 +99,6 @@ const FeaturedServices = () => {
   if (services.length === 0) {
     return null; // Don't render anything if no featured services
   }
-
-  // Calculate how many services to show at once (responsive)
-  const getVisibleCount = () => {
-    if (typeof window !== 'undefined') {
-      if (window.innerWidth >= 1024) return 3; // lg screens
-      if (window.innerWidth >= 768) return 2;  // md screens
-      return 1; // sm screens
-    }
-    return 3;
-  };
-
-  const [visibleCount, setVisibleCount] = useState(getVisibleCount());
-
-  useEffect(() => {
-    const handleResize = () => {
-      setVisibleCount(getVisibleCount());
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-900/50">
