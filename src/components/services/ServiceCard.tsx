@@ -81,7 +81,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onPurchase, onInquir
         <div className="w-full">
           {service.pricing_type === 'fixed' && service.price ? (
             <div className="flex items-center justify-between mb-2">
-              <span className="text-2xl font-bold text-primary">
+              <span className="text-lg font-bold text-primary">
                 {formatPrice(service.price, service.currency)}
               </span>
               <Button onClick={() => onPurchase(service)} className="flex items-center">
@@ -91,7 +91,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onPurchase, onInquir
             </div>
           ) : (
             <div className="flex items-center justify-between mb-2">
-              <span className="text-lg font-semibold text-gray-600">
+              <span className="text-sm font-semibold text-gray-600">
                 Request Quote
               </span>
               <Button variant="outline" onClick={() => onInquiry(service)} className="flex items-center">
