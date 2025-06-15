@@ -9,6 +9,7 @@ import ProjectShowcase from '../components/home/ProjectShowcase';
 import BlogPreview from '../components/home/BlogPreview';
 import Contact from '../components/home/Contact';
 import FeaturedServices from '../components/services/FeaturedServices';
+import DonationButton from '../components/donate/DonationButton';
 import { trackPageView } from '../utils/analytics';
 
 // Main landing page component with hero section and featured content
@@ -39,6 +40,31 @@ const Index = () => {
         <Header />
         <main className="flex-grow">
           <Hero />
+          
+          {/* Donation Trigger Section */}
+          <section className="py-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="container mx-auto px-4 text-center">
+              <div className="max-w-2xl mx-auto">
+                <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+                  Support Innovation in Tanzania
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg">
+                  Your support helps me continue building innovative technology solutions that empower communities across Tanzania. Every contribution makes a difference.
+                </p>
+                <div className="flex justify-center">
+                  <DonationButton 
+                    variant="primary" 
+                    size="lg"
+                    className="shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  />
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                  Secure payments powered by modern technology
+                </p>
+              </div>
+            </div>
+          </section>
+
           <Vision />
           <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
             <ProjectShowcase />
