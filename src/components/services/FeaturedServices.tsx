@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Service } from '@/types/services';
 import { getServices } from '@/lib/services';
@@ -133,7 +132,7 @@ const FeaturedServices = () => {
             {/* Carousel container */}
             <div className="overflow-hidden">
               <div 
-                className="flex transition-transform duration-500 ease-out"
+                className="flex items-start transition-transform duration-500 ease-out"
                 style={{ 
                   transform: `translateX(-${(currentIndex * 100) / visibleCount}%)`,
                   width: `${(services.length * 100) / visibleCount}%`
@@ -142,7 +141,7 @@ const FeaturedServices = () => {
                 {services.map((service) => (
                   <div 
                     key={service.id} 
-                    className="px-4"
+                    className="px-4 flex"
                     style={{ width: `${100 / services.length}%` }}
                   >
                     <ServiceCard
@@ -170,7 +169,7 @@ const FeaturedServices = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
             {services.map((service) => (
               <ServiceCard
                 key={service.id}

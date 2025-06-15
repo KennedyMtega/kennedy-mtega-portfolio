@@ -21,7 +21,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onPurchase, onInquir
   };
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex flex-col">
       {service.image_url && (
         <div className="relative h-48 overflow-hidden rounded-t-lg">
           <img
