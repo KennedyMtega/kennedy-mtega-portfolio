@@ -136,20 +136,27 @@ const DashboardBlogEdit = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // In a real app, you would upload this to Supabase Storage
-    // For now, let's simulate with a timeout and fake URL
     setImageUploading(true);
     
+    const fileExt = file.name.split('.').pop();
+    const filePath = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
     try {
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, replace this with actual upload code and URL
-      const imageUrl = URL.createObjectURL(file);
-      
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('portfolio')
+        .getPublicUrl(filePath);
+
       setFormData(prev => ({
         ...prev,
-        image_url: imageUrl
+        image_url: publicUrl,
       }));
       
       toast({
