@@ -6,6 +6,7 @@ import ServiceCard from './ServiceCard';
 import ServicePurchaseModal from './ServicePurchaseModal';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const FeaturedServices = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -95,8 +96,12 @@ const FeaturedServices = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious>
+              <ChevronLeft className="h-4 w-4" />
+            </CarouselPrevious>
+            <CarouselNext>
+              <ChevronRight className="h-4 w-4" />
+            </CarouselNext>
           </Carousel>
         </div>
       </div>
