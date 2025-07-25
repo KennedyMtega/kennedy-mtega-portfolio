@@ -1,5 +1,6 @@
-// AI content generation component using Gemini API
+// AI content generation component using Gemini API via Supabase Edge Function
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GeminiAIWriterProps {
   prompt: string;
@@ -14,10 +15,6 @@ interface GeminiAIWriterProps {
   className?: string;
 }
 
-// Note: API key should be stored securely in Supabase Edge Functions
-// This component requires the GEMINI_API_KEY to be set up in Supabase secrets
-const GEMINI_MODEL = 'gemini-2.5-pro-exp-03-25';
-
 const GeminiAIWriter: React.FC<GeminiAIWriterProps> = ({ prompt, onGenerate, buttonText = 'Generate with AI', className }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +22,33 @@ const GeminiAIWriter: React.FC<GeminiAIWriterProps> = ({ prompt, onGenerate, but
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
+    
     try {
-      setError('AI content generation requires API key configuration. Please contact the administrator to set up the GEMINI_API_KEY in Supabase secrets.');
+      console.log('Calling generate-content function with prompt:', prompt);
+      
+      const { data, error: functionError } = await supabase.functions.invoke('generate-content', {
+        body: { prompt }
+      });
+
+      if (functionError) {
+        console.error('Function error:', functionError);
+        throw new Error(functionError.message || 'Failed to call content generation function');
+      }
+
+      if (data?.error) {
+        console.error('Function returned error:', data.error);
+        throw new Error(data.error);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from content generation');
+      }
+
+      console.log('Content generation successful:', data);
+      onGenerate(data);
+      
     } catch (err: any) {
+      console.error('Content generation error:', err);
       setError(err.message || 'Failed to generate content');
     } finally {
       setLoading(false);
@@ -49,4 +70,4 @@ const GeminiAIWriter: React.FC<GeminiAIWriterProps> = ({ prompt, onGenerate, but
   );
 };
 
-export default GeminiAIWriter; 
+export default GeminiAIWriter;
