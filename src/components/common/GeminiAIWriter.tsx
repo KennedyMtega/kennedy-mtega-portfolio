@@ -14,7 +14,8 @@ interface GeminiAIWriterProps {
   className?: string;
 }
 
-const GEMINI_API_KEY = 'AIzaSyDLXkUhoQLL5suLQ4Q__tIXZL3cVlMdIbA';
+// Note: API key should be stored securely in Supabase Edge Functions
+// This component requires the GEMINI_API_KEY to be set up in Supabase secrets
 const GEMINI_MODEL = 'gemini-2.5-pro-exp-03-25';
 
 const GeminiAIWriter: React.FC<GeminiAIWriterProps> = ({ prompt, onGenerate, buttonText = 'Generate with AI', className }) => {
@@ -25,33 +26,7 @@ const GeminiAIWriter: React.FC<GeminiAIWriterProps> = ({ prompt, onGenerate, but
     setLoading(true);
     setError(null);
     try {
-      const aiPrompt = `You are an expert blog writer for Kennedy Mtega's portfolio. Write a high-quality, SEO-optimized blog post for the following topic. Return a JSON object with: title, meta (SEO meta description), subheading, excerpt (1-2 sentence summary), and body (full markdown content).\n\nTopic: ${prompt}`;
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: aiPrompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      });
-      const data = await response.json();
-      // Gemini returns text in data.candidates[0].content.parts[0].text
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error('No response from AI');
-      // Try to parse JSON from the response
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        // Fallback: try to extract JSON from text
-        const match = text.match(/\{[\s\S]*\}/);
-        if (match) {
-          result = JSON.parse(match[0]);
-        } else {
-          throw new Error('AI response is not valid JSON');
-        }
-      }
-      onGenerate(result);
+      setError('AI content generation requires API key configuration. Please contact the administrator to set up the GEMINI_API_KEY in Supabase secrets.');
     } catch (err: any) {
       setError(err.message || 'Failed to generate content');
     } finally {

@@ -99,33 +99,7 @@ const Auth = () => {
     try {
       console.log("Attempting login with:", email);
       
-      // Check for hardcoded credentials first
-      if (email === 'mtegakennedy@gmail.com' && password === 'Helphelp@2024') {
-        console.log("Using hardcoded credentials");
-        
-        // Store hardcoded user data in localStorage
-        const userData = {
-          email: 'mtegakennedy@gmail.com',
-          name: 'Kennedy Mtega',
-          role: 'admin',
-          id: '00000000-0000-0000-0000-000000000000'
-        };
-        
-        localStorage.setItem('userData', JSON.stringify(userData));
-        localStorage.setItem('sessionData', JSON.stringify({ 
-          access_token: 'hardcoded-token',
-          refresh_token: 'hardcoded-refresh-token',
-          expires_at: Date.now() + 3600 * 1000 // 1 hour from now
-        }));
-        
-        // Force navigation and prevent further execution
-        const redirectPath = getRedirectPath();
-        console.log("Redirecting to:", redirectPath);
-        window.location.href = redirectPath;
-        return;
-      }
-      
-      // Otherwise try normal supabase login
+      // Try normal supabase login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
