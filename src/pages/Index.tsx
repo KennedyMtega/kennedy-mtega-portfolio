@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import Header from '../components/layout/Header';
@@ -18,7 +19,9 @@ const Index = () => {
     window.scrollTo(0, 0);
     trackPageView('/');
   }, []);
-  return <>
+
+  return (
+    <>
       <Helmet>
         <title>{"Kennedy Mtega | Developer & Entrepreneur in Tanzania"}</title>
         <meta name="description" content="Kennedy Mtega: Building innovative technology solutions that empower and connect communities across Tanzania. Developer, Entrepreneur, and Visionary." />
@@ -49,7 +52,11 @@ const Index = () => {
                   Your support helps me continue building innovative technology solutions that empower communities across Tanzania. Every contribution makes a difference.
                 </p>
                 <div className="flex justify-center">
-                  <DonationButton variant="primary" size="lg" className="shadow-lg hover:shadow-xl transition-shadow duration-300" />
+                  <DonationButton 
+                    variant="primary" 
+                    size="lg"
+                    className="shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  />
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                   Secure payments powered by modern technology
@@ -63,13 +70,15 @@ const Index = () => {
             <ProjectShowcase />
           </div>
           <FeaturedServices />
-          <div className="py-12 bg-gray-50 dark:bg-gray-900/50 md:py-[10px]">
+          <div className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900/50">
             <BlogPreview />
           </div>
           <Contact />
         </main>
         <Footer />
       </div>
-    </>;
+    </>
+  );
 };
+
 export default Index;
